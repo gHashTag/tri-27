@@ -96,7 +96,8 @@ worktree when its issue closes - that reaper is still unwritten.
 
 | item | state | needs |
 | --- | --- | --- |
-| **Characters** | 24 PRODUCED: 17 characters (Queen/LARVA/3 lines/12 stages) plus 4 portraits (hex-badge busts) plus 3 ground tiles (held/neutral/fog engraved plates, triangle-clipped). `prototypes/08-comb-ground-portraits.html` adds a click-to-portrait panel (finds the bee at the picked cell) and visible ground texture. Pipeline + two caught defects (human-face drift on the first Queen portrait; ground texture invisible at first-pass alpha) in `sprites/PIPELINE.md` | demotion wiring once `queen_dispatch` gets a `failure_kind`; a full command-HUD chrome (resource strip, panels, minimap) is next, see below |
+| **Characters** | 24 PRODUCED: 17 characters (Queen/LARVA/3 lines/12 stages) plus 4 portraits plus 3 ground tiles. Pipeline + two caught defects in `sprites/PIPELINE.md` | demotion wiring once `queen_dispatch` gets a `failure_kind` |
+| **IN THE REAL PAGE** | `QueenComb.tsx` on `gHashTag/trinity` branch `feat/queen-comb-view` (`d7ae6246a`): a fourth board view COMB beside KANBAN / MISSION MAP / FACTORY. Cells = board cards (done/running held, backlog/review neutral, blocked/dropped fog); bees = `workers.slots[]` (busy flies, idle is a larva); click binds a card + portrait. Same props as QueenFactory. Verified in the built page against live data (67 held, 3/4 bees). Ratchet 179/179, language contract 140/140, all Queen gates PASS | merge the PR; the publisher then ships it |
 | Slots or aggregates | **DECIDED: slots** (user, 2026-09-03) | bind `workers.slots[]` to cells |
 | Flower ring / field size | undecided | k=2 (19 tiles) is the canonical Flower and costs nothing; 37 and 61 both fit |
 | 108 lit vertices vs 27 | undecided | 108 needs four 27-trit words per tile; only worth it if those 108 quantities mean something |
@@ -106,7 +107,7 @@ worktree when its issue closes - that reaper is still unwritten.
 | Z.AI keys | 2 live (`dced…w8LF`, `ff6f…Ii78`); 2 exhausted on both hosts, deleted | top up or leave |
 | **Review queue (17)** | not "no review": accept=34 of 49 finished. Three valves: `wait` was terminal (fixed), a `## VERDICT` header torn across transcript rows read as no verdict (fixed, `fix/queen-review-torn-verdict`), and `sendBack` never re-dispatches (#1329, open). 6 escalations genuinely need a person or a rewritten issue | merge + deploy the fix; decide #1329 |
 | Map bound to live data | not started | `06-comb.html` is seeded; `public-hardware` (one board today) and `public-activity` (120 events/24h) are the sources |
-| Zoom / Protoss interior / bee evolution | designed in `zoom-and-lod.md`, `evolving-bees.md`; not built | |
+| Zoom / Protoss interior / bee evolution | designed in `zoom-and-lod.md`, `evolving-bees.md`; the 12 stage sprites exist but the React comb draws only base line sprites for busy slots - stage needs a per-slot ledger the API does not emit yet | |
 | Tabs at screen height | specified in `tabs-at-height.md` against the real component tree; not built | |
 
 ## Where things are
@@ -122,6 +123,17 @@ Railway    trios-agent-server        QUEEN_FPGA_SIGNING_PRIVATE_KEY set; deploy 
 ```
 
 ## Corrections made along the way, so they are not re-learned
+
+- The command-HUD prototype (09) was written in plain HTML; the user was
+  right that the page is React + Vite. It was a throwaway; the component is
+  `QueenComb.tsx`. Do not port 09 - port its data bindings, which are already
+  the page's own hooks.
+- Three React lint rules fired on the first component draft and each was
+  correct: derive cells and bees with useMemo, never read a ref during
+  render, keep the one ref clamp inside the effect that owns it.
+- `grep -c` on a built chunk printed a 1 from the wrong line once; the browser
+  was serving a cached older chunk with a different hash. Prove a served
+  bundle by fetching it from the preview server and grepping THAT.
 
 - The 55.9 fps figure was one implementation, not canvas2D.
 - The palette was read from the wrong file twice (checkout, not live site).
