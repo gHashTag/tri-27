@@ -97,7 +97,7 @@ worktree when its issue closes - that reaper is still unwritten.
 | item | state | needs |
 | --- | --- | --- |
 | **Characters** | 24 PRODUCED: 17 characters (Queen/LARVA/3 lines/12 stages) plus 4 portraits plus 3 ground tiles. Pipeline + two caught defects in `sprites/PIPELINE.md` | demotion wiring once `queen_dispatch` gets a `failure_kind` |
-| **IN THE REAL PAGE** | `QueenComb.tsx` on `gHashTag/trinity` branch `feat/queen-comb-view` (`d7ae6246a`): a fourth board view COMB beside KANBAN / MISSION MAP / FACTORY. Cells = board cards (done/running held, backlog/review neutral, blocked/dropped fog); bees = `workers.slots[]` (busy flies, idle is a larva); click binds a card + portrait. Same props as QueenFactory. Verified in the built page against live data (67 held, 3/4 bees). Ratchet 179/179, language contract 140/140, all Queen gates PASS | merge the PR; the publisher then ships it |
+| **IN THE REAL PAGE** | `QueenComb.tsx` MERGED as trinity #894 = `83b38287a` (2026-09-03 17:3xZ) and PUBLISHED by the apex publisher (`ghashtag.github.io` `1a39ad464`, entry `index-DkZwajUe.js`, chunk `Queen-B9JCD1s3.js`). Seen live at t27.ai/#/queen: 73 held / 23 neutral / 56 fog, 4/4 bees, the Queen on the centre cell. Cells = board cards; bees = `workers.slots[]`; click binds a card + portrait | - |
 | Slots or aggregates | **DECIDED: slots** (user, 2026-09-03) | bind `workers.slots[]` to cells |
 | Flower ring / field size | undecided | k=2 (19 tiles) is the canonical Flower and costs nothing; 37 and 61 both fit |
 | 108 lit vertices vs 27 | undecided | 108 needs four 27-trit words per tile; only worth it if those 108 quantities mean something |
@@ -108,7 +108,7 @@ worktree when its issue closes - that reaper is still unwritten.
 | **Review queue (17)** | not "no review": accept=34 of 49 finished. Three valves: `wait` was terminal (fixed), a `## VERDICT` header torn across transcript rows read as no verdict (fixed, `fix/queen-review-torn-verdict`), and `sendBack` never re-dispatches (#1329, open). 6 escalations genuinely need a person or a rewritten issue | merge + deploy the fix; decide #1329 |
 | Map bound to live data | not started | `06-comb.html` is seeded; `public-hardware` (one board today) and `public-activity` (120 events/24h) are the sources |
 | Zoom / Protoss interior / bee evolution | designed in `zoom-and-lod.md`, `evolving-bees.md`; the 12 stage sprites exist but the React comb draws only base line sprites for busy slots - stage needs a per-slot ledger the API does not emit yet | |
-| Tabs at screen height | specified in `tabs-at-height.md` against the real component tree; not built | |
+| **ONE SCREEN** (the user, 2026-09-04, in Russian: why is the screen so long - put everything into one HUD on one screen) | BUILT on trinity `feat/queen-command-screen`, the 4X command HUD in the user's two reference images with the live palette: top resource bar (BEES, ACCEPTED, VERDICTS, RESEARCH, FOUNDRY, NEXT ROUND, ALERTS, status pill + MENU), left command panel (COMB / KANBAN / MISSION MAP / FACTORY / TECHNOLOGY TREE, digit keys 1-5, collapsible), centre viewport (`SECTOR: repo`, FIT / − / + / FULLSCREEN) with the CONTEXT DETAILS overlay (BEE QUEUE = running cards + their latest event; SELECTED = the Queen's portrait and stats or the picked cell), right column (INTEL FEED = public-activity, OVERVIEW = flat minimap of the same cells, SECTORS = the six columns as territories), bottom (ACTIVE SECTOR, QUICK COMMANDS: copy A2A / open repo / open issue / fit / fullscreen / EN-RU, and the gold NEXT QUEEN ROUND clock with the decision popover). No page scroll: the height chain of `tabs-at-height.md` §3.3 is applied under `body.queen-shell` / `.queen27-page.is-shell`, and `qa/queen-viewport-contract.mjs` (§5 adapted) runs 5 sizes × 5 views in headless Chrome: 25/25. DATA-HONESTY RULE: every number on screen is an endpoint field or a COPY key, absent data reads as a dash, the gold block is a clock and is never labelled END TURN - no public write endpoint exists. Built by three parallel panel builders + one integrator + four verifiers (two adversarial reviews found 25 items, 5 blockers all "0 rendered while the endpoint is silent") + a fix loop, then five fixes by hand from the screenshots: fit-to-box camera with a bottom inset for the context panel, context panel open only on the comb (and never by default on a phone), six sector rows fit at 900px, active-sector stats as a 2x2 grid behind the mark instead of a ground tile, and the minimap pick reaching the context panel. **MERGED as trinity #895 = `4f06bddcf`** (2026-09-03 19:16Z) and **PUBLISHED**: apex `6b1b82041` (19:20Z), entry `index-uZ48wLf1.js`, chunk `Queen-C3eVNqWh.js` (107,527 B) carries `queen-shell`, `queen27-hud-top`, `queen27-hud-command`, `queen27-context`, `queen27-intel`, `queen27-minimap`, `fitInset` - grepped from the served file, not from dist | open items below: bee evolution stages, worktree reaper, `failure_kind` |
 
 ## Where things are
 
@@ -117,7 +117,12 @@ tri-27/docs/game/           13 studies + this file
 tri-27/docs/game/prototypes 01-06 + README (geometry provenance, the defects found, per-pass timings)
 BrowserOS  feat/queen-supervisor     a0df36cd5 routes (superseded by origin's merge of #99)
 BrowserOS  fix/queen-public-cors-and-key  f03afa01a + 851d77008  -> PR #105
-trinity    main 67623aa60            page re-pinned, published
+trinity    main 83b38287a            #894 comb merged and published (apex 1a39ad464)
+trinity    feat/queen-command-screen  the one-screen HUD (clean clone at /tmp/trinity-comb)
+ghashtag.github.io  publish-website.yml   THE publisher: builds trinity@main every 15 min IF the cron fires
+                                          (it stalled 2.5 h on 2026-09-03); `gh workflow run publish-website.yml
+                                          --repo gHashTag/ghashtag.github.io` publishes in ~3 min. trinity's own
+                                          deploy-site.yml is dead (needs a GHIO_TOKEN nobody created; 6/6 failed)
 Railway    trios-agent-server        QUEEN_FPGA_SIGNING_PRIVATE_KEY set; deploy 7b381c42 live
 ~/queen-fpga-signing.key             the private half, 0600, never committed
 ```
@@ -135,6 +140,18 @@ Railway    trios-agent-server        QUEEN_FPGA_SIGNING_PRIVATE_KEY set; deploy 
   was serving a cached older chunk with a different hash. Prove a served
   bundle by fetching it from the preview server and grepping THAT.
 
+- **Camera distance is perspective, not zoom.** The comb's projection is
+  `f = dist / (dist + Z + 430)`; at the minimum dist the 189-cell field is
+  still 1030 px wide (measured in Node), so a fit that bisects dist collapses
+  to the floor and the field sticks out. A separate `scale` factor in the
+  projection is what the fitter bisects and what the wheel and the ± buttons
+  drive; dist stays 420. The first fit was shipped to the harness before this
+  was measured and every screenshot showed a field overflowing its band.
+- The viewport harness once captured a black comb at 1280x600 while a real
+  browser at the same size drew the field in the band (lit-pixel rows 0.1-0.4
+  of the canvas, none below, on a resize without reload and on cold reloads).
+  A harness screenshot is not a browser; when the two disagree, measure the
+  browser before touching the code.
 - The 55.9 fps figure was one implementation, not canvas2D.
 - The palette was read from the wrong file twice (checkout, not live site).
 - "Gold has 27 uses" was four files; whole-tree count is 277.
