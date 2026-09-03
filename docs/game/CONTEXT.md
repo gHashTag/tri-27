@@ -102,6 +102,8 @@ worktree when its issue closes - that reaper is still unwritten.
 | 108 lit vertices vs 27 | undecided | 108 needs four 27-trit words per tile; only worth it if those 108 quantities mean something |
 | PR #105 merge + `railway up` | **MERGED** `441b46e5d` 12:53Z (over pre-existing red CI: pg-migrate has no Postgres in CI, server-tools dies on D-Bus, cla needs the owner's signature); redeployed from the merge | - |
 | Worktree reaper | unwritten | prune `.worktrees/queen-N` when issue N closes and the tree is clean |
+| **Swarm fed** | 2026-09-03 13:13Z: 14 briefless backlog issues rewritten by `queen-briefing` (two, #957 and #380, as operator-only records - their sources are not in the bees' tree). First tick: 4 dispatches on 2 live keys. #1279 accepted 4/4 criteria, 0 strays, at 13:28Z | keep the backlog briefed; the Queen cannot write her own briefs yet (#1327) |
+| Z.AI keys | 2 live (`dced…w8LF`, `ff6f…Ii78`); 2 exhausted on both hosts, deleted | top up or leave |
 | Map bound to live data | not started | `06-comb.html` is seeded; `public-hardware` (one board today) and `public-activity` (120 events/24h) are the sources |
 | Zoom / Protoss interior / bee evolution | designed in `zoom-and-lod.md`, `evolving-bees.md`; not built | |
 | Tabs at screen height | specified in `tabs-at-height.md` against the real component tree; not built | |
