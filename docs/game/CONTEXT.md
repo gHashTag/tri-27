@@ -96,7 +96,7 @@ worktree when its issue closes - that reaper is still unwritten.
 
 | item | state | needs |
 | --- | --- | --- |
-| **Characters** | FIVE PRODUCED 2026-09-03: Queen, SCRIBE, WRIGHT, LAPIDARY, LARVA - engraved via kie.ai, in `sprites/`, drawn by `prototypes/07-comb-sprites.html`. Pipeline in `sprites/PIPELINE.md` | four evolution stages per line (FORAGER/ARTISAN/WARDEN/ARCHON), portraits, ground tiles. Each render ~0.84 kie credits; 5,490 left |
+| **Characters** | SEVENTEEN PRODUCED 2026-09-03: Queen, LARVA, 3 base lines, and all 12 stage renders (SCRIBE/WRIGHT/LAPIDARY x FORAGER/ARTISAN/WARDEN/ARCHON) - engraved via kie.ai, in `sprites/`, drawn by `prototypes/07-comb-sprites.html` with a bottom ladder showing every stage side by side. `stageOf()` gates on the study's rule verbatim (accepted/cleanAccepts/rescues/replayed). Pipeline in `sprites/PIPELINE.md` | portraits, ground tiles, demotion wiring once `queen_dispatch` gets a `failure_kind` |
 | Slots or aggregates | **DECIDED: slots** (user, 2026-09-03) | bind `workers.slots[]` to cells |
 | Flower ring / field size | undecided | k=2 (19 tiles) is the canonical Flower and costs nothing; 37 and 61 both fit |
 | 108 lit vertices vs 27 | undecided | 108 needs four 27-trit words per tile; only worth it if those 108 quantities mean something |

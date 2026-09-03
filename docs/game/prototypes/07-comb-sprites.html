@@ -248,14 +248,17 @@ function render(now){
     }}
   // THE LADDER - every stage of every line, so evolution reads side by side
   {const cellW=Math.min(84,(W-32)/15), y0=H-cellW-40;
-    g.font='10px Outfit,system-ui';g.textAlign='center';g.fillStyle='rgba(255,255,255,.35)';
+    g.font='9px Outfit,system-ui';g.textAlign='center';g.fillStyle='rgba(255,255,255,.35)';
     let i=0;
     for(const st of STAGES){for(const l of (st==='larva'?['larva']:LINES)){
       const im=st==='larva'?SPR.larva:SPR[l+'-'+st]; const x=16+cellW*i+cellW/2;
       if(im&&im.naturalWidth){const k=Math.pow(1.618,STAGES.indexOf(st)-2),s2=cellW*0.42*Math.min(k,1.5);
         g.drawImage(im,x-s2,y0+cellW/2-s2,s2*2,s2*2)}
       else{g.strokeStyle='rgba(255,212,90,.25)';g.strokeRect(x-cellW*.3,y0+cellW*.2,cellW*.6,cellW*.6)}
-      g.fillText((st==='larva'?'LARVA':l.toUpperCase()[0]+' '+st.toUpperCase()),x,y0+cellW+12); i++}}
+      // two-line label: line letter above, stage below, so 13 labels do not collide
+      if(st==='larva'){g.fillText('LARVA',x,y0+cellW+12)}
+      else{g.fillText(l.toUpperCase(),x,y0+cellW+10);g.fillText(st.toUpperCase(),x,y0+cellW+22)}
+      i++}}
     g.textAlign='start'}
   const _t4=performance.now();
   PASS.ground=_t1-d0;PASS.walls=_t2-_t1;PASS.nodes=_t3-_t2;PASS.bees=_t4-_t3;PASS.lit=lit;
