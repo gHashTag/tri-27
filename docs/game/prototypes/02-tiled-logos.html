@@ -1,0 +1,192 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Queen map — tiled logos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap');
+  :root{--bg:#000;--golden:#FFD700;--accent:#00FF88;--cyan:#00CCFF;--mark:#08FAB5;--muted:#888}
+  html,body{margin:0;height:100%;background:var(--bg);color:#fff;font-family:'Outfit',system-ui,sans-serif;overflow:hidden}
+  canvas{display:block;width:100vw;height:100vh;cursor:grab}canvas.drag{cursor:grabbing}
+  #hud{position:fixed;top:14px;left:16px;font-size:12px;letter-spacing:.08em;line-height:1.75;
+       text-transform:uppercase;color:var(--muted);pointer-events:none}
+  #hud b{color:var(--golden);font-weight:500}.ok{color:var(--accent)}.warn{color:#ff8a6b}
+  #hint{position:fixed;bottom:14px;right:16px;font-size:11px;letter-spacing:.09em;
+        text-transform:uppercase;color:rgba(255,255,255,.25)}
+  #lod{position:fixed;bottom:14px;left:16px;font-size:11px;letter-spacing:.09em;
+       text-transform:uppercase;color:var(--muted);line-height:1.9}
+</style>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div>QUEEN MAP — <b id="n">—</b> TILES · <b id="cells">—</b> CELLS</div>
+  <div>DRAW <b id="dm">—</b> MS MEDIAN · <b id="dp">—</b> MS P95 · BUDGET 8.33</div>
+  <div><span id="v" class="ok">—</span></div>
+</div>
+<div id="lod">
+  <div>LOD <b id="lodname">—</b> · TILE <b id="px">—</b> PX</div>
+  <div>1-9 GRID SIZE · R RESET</div>
+</div>
+<div id="hint">DRAG TO ORBIT · WHEEL TO ZOOM</div>
+<script>
+const P=["M543.609 639.667L490.537 546.456L468.444 585.304L543.609 717.477V639.667Z","M489.786 545.199L438.209 453.966H393.861L467.788 584.09L489.786 545.199Z","M384.525 360.512L436.994 452.791L393.091 452.811L319.18 322.035L384.525 360.512Z","M319.922 320.841L385.231 358.858H489.638L468.408 320.815L319.922 320.841Z","M469.854 320.81L491.695 358.618L596.337 358.912L618.433 320.801L469.854 320.81Z","M703.129 359.011L598.207 358.965L619.983 321.06L767.697 321.125L703.129 359.011Z","M702.54 360.827L650.501 452.677L695.338 452.697L769.614 321.531L702.54 360.827Z","M598.155 544.433L620.701 584.062L694.724 453.922L649.575 453.972L598.155 544.433Z","M544.819 639.162L597.407 545.611L619.959 585.522L544.819 717.812V639.162Z","M543.946 567.149L511.486 510.031L491.755 544.962L543.946 636.825V567.149Z","M510.857 508.805L479.79 454.184H440.322L490.965 543.644L510.857 508.805Z","M479.052 452.892L447.096 396.758L387.857 362.23L439.599 453.267L479.052 452.892Z","M389.427 361.072L447.673 395.597L511.235 395.595L491.23 360.678L389.427 361.072Z","M512.836 395.557L576.043 395.537L595.834 360.751H492.923L512.836 395.557Z","M577.573 395.548L641.433 395.482L700.284 360.835H597.379L577.573 395.548Z","M641.979 396.644L609.958 452.951L649.135 452.858L700.736 362.59L641.979 396.644Z","M578.24 508.803L597.734 543.266L648.408 454.174L609.263 454.131L578.24 508.803Z","M545.483 567.025L577.45 510.047L597.043 544.548L545.483 635.215V567.025Z","M543.157 496.408L530.886 474.893L511.632 508.976L543.157 564.23V496.408Z","M510.799 507.831L530.268 473.478L519.428 454.358L480.586 454.341L510.799 507.831Z","M506.749 432.127L518.606 453.09L479.871 453.107L448.64 398.108L506.749 432.127Z","M507.208 431.026L530.649 431.016L511.365 397.077L449.27 397.105L507.208 431.026Z","M512.645 397.101L531.982 430.989H555.007L574.428 397.101H512.645Z","M580.435 431.079L556.539 431.069L575.922 397.106L638.353 397.134L580.435 431.079Z","M580.705 432.287L568.987 453.102L607.741 453.119L638.937 398.141L580.705 432.287Z","M576.766 507.787L557.383 473.503L568.216 454.334L607.09 454.317L576.766 507.787Z","M544.716 496.337L556.648 474.865L575.81 509.007L544.716 564.007V496.337Z"];
+function parse(d){const t=d.match(/[MLHVZ]|-?\d*\.?\d+/g),pts=[];let i=0,c='M',x=0,y=0;
+  while(i<t.length){if(/[MLHVZ]/.test(t[i])){c=t[i++];if(c==='Z')break;continue;}
+    if(c==='H')x=+t[i++];else if(c==='V')y=+t[i++];else{x=+t[i++];y=+t[i++];}pts.push([x,y]);}return pts;}
+
+// normalise the 27 petals into a unit square, so one tile == one logo
+const RAW=P.map(parse);
+let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9;
+for(const g of RAW)for(const[x,y]of g){mnx=Math.min(mnx,x);mny=Math.min(mny,y);mxx=Math.max(mxx,x);mxy=Math.max(mxy,y);}
+const S=Math.max(mxx-mnx,mxy-mny), OX=(mnx+mxx)/2, OY=(mny+mxy)/2;
+const MARK=RAW.map(g=>g.map(([x,y])=>[(x-OX)/S,(y-OY)/S]));   // in [-.5,.5]
+const RING=i=>((i/9)|0);
+
+// ---- the field of tiles ------------------------------------------------------
+const CLS=['cpu','fpga','gpu'], COL={cpu:'#FFD700',fpga:'#00CCFF',gpu:'#00FF88',off:'#2a2a32'};
+const TILE=100, GAP=0;                        // joined edge to edge
+let N=7, tiles=[];
+function build(n){
+  N=n; tiles=[];
+  const o=(n-1)/2;
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    const i=r*n+c;
+    tiles.push({
+      x:(c-o)*(TILE+GAP), y:(r-o)*(TILE+GAP),
+      cls:CLS[(r+c*2+((r*c)%3))%3],
+      online:((i*7)%11)!==0,
+      load:0.12+0.88*Math.abs(Math.sin(i*0.9+r*0.4)),
+      phase:i*0.29,
+    });
+  }
+  document.getElementById('n').textContent=tiles.length;
+  document.getElementById('cells').textContent=tiles.length*27;
+}
+build(N);
+
+const cv=document.getElementById('c'), g=cv.getContext('2d',{alpha:false});
+let W,H,DPR=Math.min(devicePixelRatio||1,2);
+function resize(){W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;g.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+
+let yaw=0.0,pitch=0.95,dist=1400,drag=null,auto=true;
+cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};auto=false;cv.classList.add('drag');cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;yaw+=(e.clientX-drag.x)*.006;
+  pitch=Math.max(0.05,Math.min(1.5,pitch+(e.clientY-drag.y)*.005));drag={x:e.clientX,y:e.clientY}});
+addEventListener('pointerup',()=>{drag=null;cv.classList.remove('drag')});
+cv.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(180,Math.min(6000,dist*(1+e.deltaY*.0012)))},{passive:false});
+addEventListener('keydown',e=>{if(/[1-9]/.test(e.key))build(+e.key*3);
+  if(e.key.toLowerCase()==='r'){yaw=0;pitch=.95;dist=1400;auto=true}});
+
+function proj(x,y,z){
+  const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+  let X=x*cy+y*sy, Y2=-x*sy+y*cy;
+  let Y=Y2*cp - z*sp, Z=Y2*sp + z*cp;
+  const f=dist/(dist+Z+900);
+  return [W/2+X*f, H/2+Y*f, Z, f];
+}
+function rrect(p,r){ // rounded rect from 4 projected corners, approximated by a quad
+  g.beginPath();g.moveTo(p[0][0],p[0][1]);
+  for(let i=1;i<4;i++)g.lineTo(p[i][0],p[i][1]);
+  g.closePath();
+}
+
+const draws=[];let t0=performance.now(),lastT=t0;
+function frame(now){ render(now); requestAnimationFrame(frame); }
+function render(now){
+  const dt=now-lastT;lastT=now;
+  const d0=performance.now();
+  if(auto)yaw+=0.00035*Math.min(dt,32);
+  const t=(now-t0)/1000;
+  g.fillStyle='#000';g.fillRect(0,0,W,H);
+
+  const order=tiles.map(tl=>{
+    const lift=tl.online?(Math.sin(t*1.05+tl.phase)*.5+.5):0;
+    const z=lift*34*tl.load;
+    const c=proj(tl.x,tl.y,z);
+    return {tl,z,lift,d:c[2],f:c[3]};
+  }).sort((a,b)=>b.d-a.d);
+
+  const h=TILE/2;
+  let px=0;
+  for(const o of order){
+    const tl=o.tl, z=o.z;
+    const c=[proj(tl.x-h,tl.y-h,z),proj(tl.x+h,tl.y-h,z),proj(tl.x+h,tl.y+h,z),proj(tl.x-h,tl.y+h,z)];
+    const w=Math.hypot(c[1][0]-c[0][0],c[1][1]-c[0][1]);
+    px=Math.max(px,w);
+    if(c[0][0]<-w&&c[1][0]<-w||c[0][0]>W+w&&c[1][0]>W+w) continue;
+
+    const col=tl.online?COL[tl.cls]:COL.off;
+    // the tile body — our rectangle
+    rrect(c);
+    g.fillStyle=tl.online?'#06060a':'#040406';g.fill();
+    g.lineWidth=1;g.strokeStyle=tl.online?'rgba(255,255,255,.10)':'rgba(255,255,255,.04)';g.stroke();
+
+    if(w<14){                                   // LOD 0 — a lit cell, no mark
+      g.globalAlpha=tl.online?.20+.6*tl.load:.08;g.fillStyle=col;g.fill();g.globalAlpha=1;
+      continue;
+    }
+    const cx=(c[0][0]+c[2][0])/2, cy=(c[0][1]+c[2][1])/2;
+    if(w<52){                                   // LOD 1 — three nested triangles
+      g.globalAlpha=tl.online?.35+.5*tl.load*o.lift:.10;
+      g.strokeStyle=col;g.lineWidth=Math.max(.6,w/44);
+      for(let r=0;r<3;r++){
+        const s=w*(.34-r*.09);
+        g.beginPath();
+        for(let k=0;k<3;k++){const a=-Math.PI/2+k*2.0944;
+          const X=cx+Math.cos(a)*s, Y=cy+Math.sin(a)*s;
+          k?g.lineTo(X,Y):g.moveTo(X,Y);}
+        g.closePath();g.stroke();
+      }
+      g.globalAlpha=1;continue;
+    }
+    // LOD 2 — the whole mark, all 27 petals
+    const sc=w*.86;
+    for(let i=0;i<27;i++){
+      const pts=MARK[i], ring=RING(i);
+      g.beginPath();
+      for(let k=0;k<pts.length;k++){
+        const X=cx+pts[k][0]*sc, Y=cy+pts[k][1]*sc;
+        k?g.lineTo(X,Y):g.moveTo(X,Y);
+      }
+      g.closePath();
+      g.globalAlpha=tl.online?(.20+.62*tl.load*(.5+.5*o.lift))*(1-ring*.16):.09;
+      g.fillStyle=col;g.fill();
+      g.globalAlpha=1;
+      if(w>150){g.lineWidth=.5;g.strokeStyle='rgba(255,255,255,.20)';g.stroke();}
+    }
+  }
+  const dms=performance.now()-d0;
+  draws.push(dms);if(draws.length>180)draws.shift();
+  if(draws.length>20){
+    const s=[...draws].sort((a,b)=>a-b);
+    const m=s[s.length>>1],p=s[Math.floor(s.length*.95)];
+    dm.textContent=m.toFixed(2);dp.textContent=p.toFixed(2);
+    v.textContent=p<=8.33?('CANVAS2D HOLDS — '+(p/8.33*100).toFixed(0)+'% OF BUDGET'):'OVER BUDGET';
+    v.className=p<=8.33?'ok':'warn';
+    pxEl.textContent=px.toFixed(0);
+    lodname.textContent=px<14?'0 — LIT CELL':px<52?'1 — TRIAD':'2 — FULL MARK';
+  }
+  return dms;
+}
+const dm=document.getElementById('dm'),dp=document.getElementById('dp'),v=document.getElementById('v'),
+      pxEl=document.getElementById('px'),lodname=document.getElementById('lodname');
+requestAnimationFrame(frame);
+const q=(a,p)=>{const s=[...a].sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(s.length*p))]};
+window.__m=()=>({tiles:tiles.length,cells:tiles.length*27,n:draws.length,
+  drawMedian:q(draws,.5),drawP95:q(draws,.95),drawMax:q(draws,1)});
+window.__set=n=>{build(n);draws.length=0};
+// Synchronous bench: rAF is throttled whenever the pane is hidden, so a frame
+// count is not a sample size. This drives the same render() directly.
+window.__bench=(grid,iters=120,warm=30)=>{
+  build(grid);
+  // frame the whole field, so cost is not confounded by tiles running past the camera
+  dist=Math.max(600, grid*(TILE+GAP)*1.35); yaw=0.35; pitch=0.95; auto=false;
+  const base=performance.now();
+  for(let i=0;i<warm;i++) render(base+i*8.33);          // warmup: allocation, first paint
+  const s=[]; for(let i=0;i<iters;i++) s.push(render(base+(warm+i)*8.33));
+  s.sort((a,b)=>a-b);
+  const tilePx=+pxEl.textContent;
+  return {grid:grid+'x'+grid, tiles:tiles.length, cells:tiles.length*27, iters,
+    median:+s[s.length>>1].toFixed(3), p95:+s[Math.floor(s.length*.95)].toFixed(3),
+    max:+s[s.length-1].toFixed(3), tilePx, lod:lodname.textContent,
+    pctOfBudget:+(s[Math.floor(s.length*.95)]/8.33*100).toFixed(1)};
+};
+</script>

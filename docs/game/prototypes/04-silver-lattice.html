@@ -1,0 +1,237 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Queen map — silver lattice, lit vertices</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500&display=swap');
+  html,body{margin:0;height:100%;background:#020806;color:#fff;font-family:'Outfit',system-ui,sans-serif;overflow:hidden}
+  canvas{display:block;width:100vw;height:100vh;cursor:grab}canvas.drag{cursor:grabbing}
+  .p{position:fixed;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+     color:#7a7a82;line-height:1.9;pointer-events:none}
+  #hud{top:14px;left:16px;font-size:12px}#hud b{color:#FFD45A;font-weight:500}
+  .ok{color:#00FF88}.warn{color:#ff8a6b}
+  #leg{bottom:14px;left:16px}#hint{bottom:14px;right:16px;color:rgba(255,255,255,.22)}
+  .sw{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px}
+</style>
+<canvas id="c"></canvas>
+<div id="hud" class="p">
+  <div>FLOWER OF LIFE · RING <b id="rk">2</b> · <b id="nt">—</b> TILES · 1+3k(k+1)</div>
+  <div><b id="nv">—</b> LIT NODES · <b id="ne">—</b> EDGES · <b id="nw">—</b> TRITS</div>
+  <div>DRAW <b id="dm">—</b> MS · P95 <b id="dp">—</b> MS · <span id="v" class="ok">—</span></div>
+</div>
+<div id="leg" class="p">
+  <div><i class="sw" style="background:#FFD45A"></i>+1 WORKING</div>
+  <div><i class="sw" style="background:#64DCFF"></i>&nbsp;0 IDLE</div>
+  <div><i class="sw" style="background:#FF6B6B"></i>&minus;1 REFUSED</div>
+</div>
+<div id="hint" class="p">DRAG TO ORBIT · WHEEL TO ZOOM · 1-5 RINGS · G GLINT</div>
+<script>
+const P=["M543.609 639.667L490.537 546.456L468.444 585.304L543.609 717.477V639.667Z","M489.786 545.199L438.209 453.966H393.861L467.788 584.09L489.786 545.199Z","M384.525 360.512L436.994 452.791L393.091 452.811L319.18 322.035L384.525 360.512Z","M319.922 320.841L385.231 358.858H489.638L468.408 320.815L319.922 320.841Z","M469.854 320.81L491.695 358.618L596.337 358.912L618.433 320.801L469.854 320.81Z","M703.129 359.011L598.207 358.965L619.983 321.06L767.697 321.125L703.129 359.011Z","M702.54 360.827L650.501 452.677L695.338 452.697L769.614 321.531L702.54 360.827Z","M598.155 544.433L620.701 584.062L694.724 453.922L649.575 453.972L598.155 544.433Z","M544.819 639.162L597.407 545.611L619.959 585.522L544.819 717.812V639.162Z","M543.946 567.149L511.486 510.031L491.755 544.962L543.946 636.825V567.149Z","M510.857 508.805L479.79 454.184H440.322L490.965 543.644L510.857 508.805Z","M479.052 452.892L447.096 396.758L387.857 362.23L439.599 453.267L479.052 452.892Z","M389.427 361.072L447.673 395.597L511.235 395.595L491.23 360.678L389.427 361.072Z","M512.836 395.557L576.043 395.537L595.834 360.751H492.923L512.836 395.557Z","M577.573 395.548L641.433 395.482L700.284 360.835H597.379L577.573 395.548Z","M641.979 396.644L609.958 452.951L649.135 452.858L700.736 362.59L641.979 396.644Z","M578.24 508.803L597.734 543.266L648.408 454.174L609.263 454.131L578.24 508.803Z","M545.483 567.025L577.45 510.047L597.043 544.548L545.483 635.215V567.025Z","M543.157 496.408L530.886 474.893L511.632 508.976L543.157 564.23V496.408Z","M510.799 507.831L530.268 473.478L519.428 454.358L480.586 454.341L510.799 507.831Z","M506.749 432.127L518.606 453.09L479.871 453.107L448.64 398.108L506.749 432.127Z","M507.208 431.026L530.649 431.016L511.365 397.077L449.27 397.105L507.208 431.026Z","M512.645 397.101L531.982 430.989H555.007L574.428 397.101H512.645Z","M580.435 431.079L556.539 431.069L575.922 397.106L638.353 397.134L580.435 431.079Z","M580.705 432.287L568.987 453.102L607.741 453.119L638.937 398.141L580.705 432.287Z","M576.766 507.787L557.383 473.503L568.216 454.334L607.09 454.317L576.766 507.787Z","M544.716 496.337L556.648 474.865L575.81 509.007L544.716 564.007V496.337Z"];
+function parse(d){const t=d.match(/[MLHVZ]|-?\d*\.?\d+/g),p=[];let i=0,c='M',x=0,y=0;
+  while(i<t.length){if(/[MLHVZ]/.test(t[i])){c=t[i++];if(c==='Z')break;continue}
+  if(c==='H')x=+t[i++];else if(c==='V')y=+t[i++];else{x=+t[i++];y=+t[i++]}p.push([x,y])}return p}
+const RAW=P.map(parse);
+let a=1e9,b=1e9,cc=-1e9,dd=-1e9;
+for(const g of RAW)for(const[x,y]of g){a=Math.min(a,x);b=Math.min(b,y);cc=Math.max(cc,x);dd=Math.max(dd,y)}
+const S=Math.max(cc-a,dd-b),OX=(a+cc)/2,OY=(b+dd)/2;
+const PET=RAW.map(g=>g.map(([x,y])=>[(x-OX)/S,(y-OY)/S]));   // 27 pentagons in [-.5,.5]
+
+// 135 edges, and the 108 unique vertices they meet at — those are the nodes.
+const EDGES=[]; const vmap=new Map(); const VERT=[];
+PET.forEach((poly,pi)=>{
+  const ring=(pi/9)|0;
+  for(let i=0;i<poly.length;i++){
+    const A=poly[i], B=poly[(i+1)%poly.length];
+    EDGES.push([A[0],A[1],B[0],B[1]]);
+    const k=A[0].toFixed(4)+','+A[1].toFixed(4);
+    if(!vmap.has(k)){vmap.set(k,VERT.length);VERT.push({x:A[0],y:A[1],ring,deg:1,petal:pi})}
+    else VERT[vmap.get(k)].deg++;
+  }
+});
+
+// Exactly 27 of the 108 vertices are shared between petals - one per petal.
+// Those are the nodes: one lit vertex per trit of the tile's 27-trit word. The
+// other 81 stay dark and are structure only. This is both the correct binding
+// and a 4x cut in blits, which the pass timings showed to be the whole cost.
+const NODES=VERT.filter(v=>v.deg>=2);
+
+// ---- glint sprites, drawn once ---------------------------------------------
+const GLINT={};
+function sprite(col,r,alpha){
+  const s=r*2, cv2=document.createElement('canvas');
+  cv2.width=cv2.height=s; const x=cv2.getContext('2d'); x.globalAlpha=alpha;
+  const gr=x.createRadialGradient(r,r,0,r,r,r);
+  gr.addColorStop(0,'#ffffff'); gr.addColorStop(.22,col);
+  gr.addColorStop(.55,col+'55'); gr.addColorStop(1,col+'00');
+  x.fillStyle=gr; x.beginPath(); x.arc(r,r,r,0,6.2832); x.fill();
+  // the four-point spike that makes it read as a glint rather than a dot
+  x.strokeStyle=col+'aa'; x.lineWidth=1;
+  x.beginPath(); x.moveTo(r,2); x.lineTo(r,s-2); x.moveTo(2,r); x.lineTo(s-2,r); x.stroke();
+  return cv2;
+}
+// Nine glints, not three: hue is (ring, trit), so the iridescence carries
+// information instead of being decoration. Every colour is one the site
+// already uses - counted across apps/website/src, the top of that list is
+// #ffd700 277, #00ccff 142, #00e599 115, #00ff88 101, #aa66ff 100, #d4af37 70.
+// Read from the LIVE Queen stylesheet, https://t27.ai/assets/Queen-zHzyRD7K.css
+// (49,430 B, 499 `queen27` occurrences, 87 selectors) - NOT from the local
+// trinity checkout, which is 62 commits behind and still uses the old `queen-*`
+// prefix. Most repeated literal there is #64DCFF (12), warm accent #FFD45A (3),
+// with #FF6B6B (4); the tokens are --q-gold: #ffd700 and --q-green: #00ff88.
+const NINE=[
+  ['#FFD45A','#00FF88','#64DCFF'],   // trit +1, by ring: cpu / fpga / gpu
+  ['#d4af37','#00e599','#3f9fc4'],   // trit  0, muted
+  ['#FF6B6B','#ff66aa','#7c5cff'],   // trit -1, cold
+];
+// 9 colours x 3 brightness steps = 27 sprites. Baking the alpha into the
+// sprite means the hot loop is drawImage and nothing else: setting globalAlpha
+// per vertex was a context state change ~10,000 times a frame.
+const ALPHA=[0.30,0.58,0.90];
+for(let t=0;t<3;t++)for(let r=0;r<3;r++)for(let b=0;b<3;b++)
+  GLINT[t+':'+r+':'+b]=sprite(NINE[t][r],16,ALPHA[b]);
+
+// ---- flower lattice ---------------------------------------------------------
+const R=120;
+function flower(k){
+  const out=[[0,0,0]];
+  for(let ring=1;ring<=k;ring++){
+    const dirs=[[-1,1],[-1,0],[0,-1],[1,-1],[1,0],[0,1]];
+    let q=ring,r=0;
+    for(const[dq,dr]of dirs)for(let s=0;s<ring;s++){
+      // carry the axial coords: their parity decides which way the mark points,
+      // so neighbouring triangles interlock into one continuous web instead of
+      // leaving a hexagonal void between them.
+      // Flower of Life: centres lie ON each other's circumference, so the
+      // triangular lattice spacing equals the RADIUS, not sqrt(3)*R. Getting
+      // this wrong spaces the circles out into plain hex packing and opens the
+      // gaps the reference image does not have.
+      out.push([R*(q+r/2), R*(Math.sqrt(3)/2)*r, (q-r)&1]); q+=dq; r+=dr;
+    }
+  }
+  return out;
+}
+let K=2,tiles=[],glint=true;
+function build(k){
+  K=k;
+  tiles=flower(k).map(([x,y,flip],i)=>({x,y,i,flip,
+    // one 27-trit word per tile; one trit per petal, deterministic
+    word:Array.from({length:27},(_,j)=>[-1,0,1][(i*7+j*5+((i*j)%3))%3]),
+    phase:i*0.41}));
+  rk.textContent=k; nt.textContent=tiles.length;
+  nv.textContent=tiles.length*NODES.length; ne.textContent=tiles.length*EDGES.length;
+  nw.textContent=tiles.length*27;
+}
+
+const cv=document.getElementById('c'),g=cv.getContext('2d',{alpha:false});
+let W,H,DPR=Math.min(devicePixelRatio||1,2);
+function resize(){W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;g.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener('resize',resize);resize();
+
+let yaw=0,pitch=0.10,dist=1150,drag=null,auto=true;
+cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};auto=false;cv.classList.add('drag');cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;yaw+=(e.clientX-drag.x)*.006;
+  pitch=Math.max(0,Math.min(1.5,pitch+(e.clientY-drag.y)*.005));drag={x:e.clientX,y:e.clientY}});
+addEventListener('pointerup',()=>{drag=null;cv.classList.remove('drag')});
+cv.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(260,Math.min(12000,dist*(1+e.deltaY*.0012)))},{passive:false});
+addEventListener('keydown',e=>{if(/[1-5]/.test(e.key))build(+e.key);
+  if(e.key.toLowerCase()==='g')glint=!glint});
+
+function proj(x,y,z){
+  const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+  const X=x*cy+y*sy,Y2=-x*sy+y*cy;
+  const Y=Y2*cp-z*sp,Z=Y2*sp+z*cp;
+  const f=dist/(dist+Z+1400);
+  return [W/2+X*f,H/2+Y*f,Z,f];
+}
+
+const draws=[],PASS={};let t0=performance.now(),lastT=t0;
+function frame(n){render(n);requestAnimationFrame(frame)}
+function render(now){
+  const dt=now-lastT;lastT=now;const d0=performance.now();
+  if(auto)yaw+=0.00022*Math.min(dt,32);
+  const t=(now-t0)/1000;
+  g.fillStyle='#020806';g.fillRect(0,0,W,H);
+  const _t1=performance.now();
+
+  // the enclosing circles — silver, hairline
+  g.strokeStyle='rgba(226,226,232,.16)';g.lineWidth=1;
+  for(const tl of tiles){
+    const c=proj(tl.x,tl.y,0),rr=R*c[3];
+    if(rr<4)continue;
+    g.beginPath();g.ellipse(c[0],c[1],rr,rr*Math.cos(pitch),0,0,6.2832);g.stroke();
+  }
+
+  const _t2=performance.now();
+  // one silver pass for every edge of every tile — the whole lattice as line work
+  const sc0=R*1.16;
+  g.strokeStyle='rgba(232,232,240,.34)';g.lineWidth=.65;
+  g.beginPath();
+  for(const tl of tiles){
+    const c=proj(tl.x,tl.y,0),sc=sc0*c[3];
+    if(sc<6)continue;
+    const m=tl.flip?-1:1;
+    for(let e=0;e<EDGES.length;e++){
+      const E=EDGES[e];
+      g.moveTo(c[0]+E[0]*sc*m,c[1]+E[1]*sc*m);
+      g.lineTo(c[0]+E[2]*sc*m,c[1]+E[3]*sc*m);
+    }
+  }
+  g.stroke();
+
+  const _t3=performance.now();
+  // the lit vertices
+  let lit=0;
+  if(glint){
+    g.globalCompositeOperation='lighter';
+    for(const tl of tiles){
+      const c=proj(tl.x,tl.y,0),sc=sc0*c[3];
+      if(sc<6)continue;
+      const m=tl.flip?-1:1;
+      for(let vi=0;vi<NODES.length;vi++){
+        const V=NODES[vi];
+        const trit=tl.word[vi];               // one node, one trit
+        const pulse=.55+.45*Math.sin(t*1.6+tl.phase+vi*.21);
+        const size=(trit>0?7:trit===0?5:4)*(sc/240)*(0.75+0.5*pulse);
+        if(size<0.5)continue;
+        const X=c[0]+V.x*sc*m,Y=c[1]+V.y*sc*m;
+        if(X<-size||X>W+size||Y<-size||Y>H+size)continue;   // cull off-screen
+        const ti=trit>0?0:trit===0?1:2;
+        const b=pulse>0.78?2:pulse>0.5?1:0;
+        g.drawImage(GLINT[ti+':'+V.ring+':'+(ti===0?b:Math.min(b,1))],
+                    X-size,Y-size,size*2,size*2);
+        lit++;
+      }
+    }
+    g.globalCompositeOperation='source-over';
+  }
+
+  const _t4=performance.now();
+  PASS.circles=_t2-_t1; PASS.edges=_t3-_t2; PASS.glints=_t4-_t3; PASS.lit=lit;
+  const dms=performance.now()-d0;
+  draws.push(dms);if(draws.length>180)draws.shift();
+  if(draws.length>20){
+    const s=[...draws].sort((x,y)=>x-y),m=s[s.length>>1],p=s[Math.floor(s.length*.95)];
+    dm.textContent=m.toFixed(2);dp.textContent=p.toFixed(2);
+    v.textContent=p<=8.33?('CANVAS2D HOLDS — '+(p/8.33*100).toFixed(0)+'%'):'OVER BUDGET';
+    v.className=p<=8.33?'ok':'warn';
+  }
+  return dms;
+}
+const rk=document.getElementById('rk'),nt=document.getElementById('nt'),nv=document.getElementById('nv'),
+      ne=document.getElementById('ne'),nw=document.getElementById('nw'),dm=document.getElementById('dm'),
+      dp=document.getElementById('dp'),v=document.getElementById('v');
+build(K);requestAnimationFrame(frame);
+window.__stats=()=>({petals:PET.length,edgesPerTile:EDGES.length,vertsPerTile:VERT.length,nodesPerTile:NODES.length,
+  tiles:tiles.length,edges:tiles.length*EDGES.length,verts:tiles.length*NODES.length});
+window.__bench=(k,iters=150,warm=40)=>{
+  build(k);dist=Math.max(520,(k+1)*R*2.7);yaw=.25;pitch=.10;auto=false;
+  const base=performance.now();
+  for(let i=0;i<warm;i++)render(base+i*8.33);
+  const s=[];for(let i=0;i<iters;i++)s.push(render(base+(warm+i)*8.33));
+  s.sort((x,y)=>x-y);
+  return {rings:k,tiles:tiles.length,edges:tiles.length*EDGES.length,verts:tiles.length*NODES.length,
+    median:+s[s.length>>1].toFixed(3),p95:+s[Math.floor(s.length*.95)].toFixed(3),
+    pct:+(s[Math.floor(s.length*.95)]/8.33*100).toFixed(1),
+    pass:{circles:+PASS.circles.toFixed(2),edges:+PASS.edges.toFixed(2),
+          glints:+PASS.glints.toFixed(2),drawn:PASS.lit}};
+};
+</script>

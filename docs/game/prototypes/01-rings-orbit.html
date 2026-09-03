@@ -1,0 +1,171 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Queen map — 27 cells, orbitable</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap');
+  :root{
+    --bg:#000000; --golden:#FFD700; --accent:#00FF88; --cyan:#00CCFF;
+    --text:#FFFFFF; --muted:#888888; --border:rgba(255,255,255,.08);
+    --font:'Outfit',system-ui,-apple-system,sans-serif;
+  }
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden}
+  #wrap{position:fixed;inset:0}
+  canvas{display:block;width:100%;height:100%;cursor:grab}
+  canvas.drag{cursor:grabbing}
+  #hud{position:fixed;top:14px;left:16px;font-size:12px;letter-spacing:.08em;line-height:1.7;
+       text-transform:uppercase;color:var(--muted);pointer-events:none}
+  #hud b{color:var(--golden);font-weight:500}
+  #hud .ok{color:var(--accent)} #hud .warn{color:#ff8a6b}
+  #legend{position:fixed;bottom:14px;left:16px;font-size:11px;letter-spacing:.09em;
+          text-transform:uppercase;color:var(--muted);line-height:1.9}
+  .sw{display:inline-block;width:9px;height:9px;margin-right:7px;transform:rotate(45deg)}
+  #hint{position:fixed;bottom:14px;right:16px;font-size:11px;letter-spacing:.09em;
+        text-transform:uppercase;color:rgba(255,255,255,.25)}
+</style>
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="hud">
+  <div>QUEEN MAP — <b>27</b> CELLS / <b>3</b> RINGS / <b>9</b> SPOKES</div>
+  <div><b id="fps">—</b> · DRAW MEDIAN <b id="med">—</b> MS · P95 <b id="p95">—</b> MS</div>
+  <div>BUDGET 8.33 MS · <span id="verdict" class="ok">—</span></div>
+</div>
+<div id="legend">
+  <div><i class="sw" style="background:#FFD700"></i>CPU</div>
+  <div><i class="sw" style="background:#00CCFF"></i>FPGA</div>
+  <div><i class="sw" style="background:#00FF88"></i>GPU</div>
+  <div><i class="sw" style="background:#3a3a42"></i>OFFLINE</div>
+</div>
+<div id="hint">DRAG TO ORBIT · WHEEL TO ZOOM</div>
+<script>
+// ---- the 27 petal paths, verbatim from trinity-logo-with-label.svg -----------
+const P=["M543.609 639.667L490.537 546.456L468.444 585.304L543.609 717.477V639.667Z","M489.786 545.199L438.209 453.966H393.861L467.788 584.09L489.786 545.199Z","M384.525 360.512L436.994 452.791L393.091 452.811L319.18 322.035L384.525 360.512Z","M319.922 320.841L385.231 358.858H489.638L468.408 320.815L319.922 320.841Z","M469.854 320.81L491.695 358.618L596.337 358.912L618.433 320.801L469.854 320.81Z","M703.129 359.011L598.207 358.965L619.983 321.06L767.697 321.125L703.129 359.011Z","M702.54 360.827L650.501 452.677L695.338 452.697L769.614 321.531L702.54 360.827Z","M598.155 544.433L620.701 584.062L694.724 453.922L649.575 453.972L598.155 544.433Z","M544.819 639.162L597.407 545.611L619.959 585.522L544.819 717.812V639.162Z","M543.946 567.149L511.486 510.031L491.755 544.962L543.946 636.825V567.149Z","M510.857 508.805L479.79 454.184H440.322L490.965 543.644L510.857 508.805Z","M479.052 452.892L447.096 396.758L387.857 362.23L439.599 453.267L479.052 452.892Z","M389.427 361.072L447.673 395.597L511.235 395.595L491.23 360.678L389.427 361.072Z","M512.836 395.557L576.043 395.537L595.834 360.751H492.923L512.836 395.557Z","M577.573 395.548L641.433 395.482L700.284 360.835H597.379L577.573 395.548Z","M641.979 396.644L609.958 452.951L649.135 452.858L700.736 362.59L641.979 396.644Z","M578.24 508.803L597.734 543.266L648.408 454.174L609.263 454.131L578.24 508.803Z","M545.483 567.025L577.45 510.047L597.043 544.548L545.483 635.215V567.025Z","M543.157 496.408L530.886 474.893L511.632 508.976L543.157 564.23V496.408Z","M510.799 507.831L530.268 473.478L519.428 454.358L480.586 454.341L510.799 507.831Z","M506.749 432.127L518.606 453.09L479.871 453.107L448.64 398.108L506.749 432.127Z","M507.208 431.026L530.649 431.016L511.365 397.077L449.27 397.105L507.208 431.026Z","M512.645 397.101L531.982 430.989H555.007L574.428 397.101H512.645Z","M580.435 431.079L556.539 431.069L575.922 397.106L638.353 397.134L580.435 431.079Z","M580.705 432.287L568.987 453.102L607.741 453.119L638.937 398.141L580.705 432.287Z","M576.766 507.787L557.383 473.503L568.216 454.334L607.09 454.317L576.766 507.787Z","M544.716 496.337L556.648 474.865L575.81 509.007L544.716 564.007V496.337Z"];
+
+// ---- parse M/L/H/V/Z into polygons -----------------------------------------
+function parse(d){
+  const t=d.match(/[MLHVZ]|-?\d*\.?\d+/g), pts=[]; let i=0,cmd='M',x=0,y=0;
+  while(i<t.length){
+    if(/[MLHVZ]/.test(t[i])){cmd=t[i++]; if(cmd==='Z')break; continue;}
+    if(cmd==='H'){x=+t[i++];}
+    else if(cmd==='V'){y=+t[i++];}
+    else {x=+t[i++]; y=+t[i++];}
+    pts.push([x,y]);
+  }
+  return pts;
+}
+const CX=541.9, CY=454.0;                       // measured centroid of the mark
+const RING_Z=[0,-70,-140];                      // three shells, floating apart
+const CLASS=['cpu','fpga','gpu'];
+const COL={cpu:'#FFD700',fpga:'#00CCFF',gpu:'#00FF88',off:'#3a3a42'};
+
+const cells=P.map((d,i)=>{
+  const pts=parse(d).map(([x,y])=>[x-CX,y-CY]);
+  const ring=(i/9)|0;
+  const cx=pts.reduce((a,p)=>a+p[0],0)/pts.length;
+  const cy=pts.reduce((a,p)=>a+p[1],0)/pts.length;
+  return {pts,ring,cx,cy,
+    cls:CLASS[ring],
+    online:(i%9)!==4||ring!==1,                 // one dark cell, so offline is visible
+    load:0.15+0.85*Math.abs(Math.sin(i*1.7+ring)),
+    phase:i*0.37};
+});
+
+// ---- 3D ---------------------------------------------------------------------
+const cv=document.getElementById('c'), g=cv.getContext('2d',{alpha:false});
+let W=0,H=0,DPR=Math.min(devicePixelRatio||1,2);
+function resize(){W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;g.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize); resize();
+
+let yaw=0.0, pitch=-0.10, dist=1150, drag=null, auto=true;
+cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};auto=false;cv.classList.add('drag');cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;
+  yaw+=(e.clientX-drag.x)*0.006; pitch+=(e.clientY-drag.y)*0.006;
+  pitch=Math.max(-1.35,Math.min(1.35,pitch)); drag={x:e.clientX,y:e.clientY};});
+addEventListener('pointerup',()=>{drag=null;cv.classList.remove('drag')});
+cv.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(420,Math.min(2600,dist*(1+e.deltaY*0.0012)))},{passive:false});
+
+function project(x,y,z){
+  const cy0=Math.cos(yaw),sy=Math.sin(yaw), cp=Math.cos(pitch),sp=Math.sin(pitch);
+  let X=x*cy0+z*sy, Z=-x*sy+z*cy0;
+  let Y=y*cp-Z*sp;  Z=y*sp+Z*cp;
+  const f=dist/(dist+Z+520);
+  return [W/2+X*f, H/2+Y*f, Z, f];
+}
+
+// ---- render -----------------------------------------------------------------
+const times=[], draws=[]; let last=performance.now(), t0=performance.now();
+function frame(now){
+  const dt=now-last; last=now;
+  const d0=performance.now();
+  times.push(dt); if(times.length>240)times.shift();
+  if(auto) yaw+=0.0022*Math.min(dt,32);
+  const t=(now-t0)/1000;
+
+  g.fillStyle='#000'; g.fillRect(0,0,W,H);
+
+  // faint spoke guides — the nine bearings, drawn once per ring
+  g.lineWidth=1;
+  for(let r=0;r<3;r++){
+    g.strokeStyle='rgba(255,215,0,.05)'; g.beginPath();
+    for(let k=0;k<9;k++){
+      const c=cells[r*9+k];
+      const a=project(0,0,RING_Z[r]), b=project(c.cx*1.25,c.cy*1.25,RING_Z[r]);
+      g.moveTo(a[0],a[1]); g.lineTo(b[0],b[1]);
+    }
+    g.stroke();
+  }
+
+  // petals, painter's algorithm back to front
+  const order=cells.map((c,i)=>{
+    const lift=c.online?Math.sin(t*1.1+c.phase)*0.5+0.5:0;
+    const z=RING_Z[c.ring]-lift*26*c.load;
+    return {i,c,lift,z,d:project(c.cx,c.cy,z)[2]};
+  }).sort((a,b)=>b.d-a.d);
+
+  for(const o of order){
+    const c=o.c, z=o.z;
+    const col=c.online?COL[c.cls]:COL.off;
+    const p=c.pts.map(([x,y])=>project(x,y,z));
+    g.beginPath(); g.moveTo(p[0][0],p[0][1]);
+    for(let k=1;k<p.length;k++) g.lineTo(p[k][0],p[k][1]);
+    g.closePath();
+
+    const a=c.online?(0.28+0.55*c.load*(0.55+0.45*o.lift)):0.14;
+    g.fillStyle=col; g.globalAlpha=a; g.fill();
+    g.globalAlpha=1;
+    g.lineWidth=c.online?1.1:0.8;
+    g.strokeStyle=c.online?'rgba(255,255,255,.55)':'rgba(255,255,255,.12)';
+    g.stroke();
+
+    if(c.online&&c.load>0.62){
+      g.save(); g.shadowColor=col; g.shadowBlur=16*o.lift*c.load;
+      g.globalAlpha=0.30*o.lift; g.fillStyle=col; g.fill(); g.restore(); g.globalAlpha=1;
+    }
+  }
+
+  draws.push(performance.now()-d0); if(draws.length>240)draws.shift();
+
+  // fps readout
+  if(times.length>30){
+    const s=[...times].sort((a,b)=>a-b), w=[...draws].sort((a,b)=>a-b);
+    const med=s[s.length>>1];
+    const dmed=w[w.length>>1], dp95=w[Math.floor(w.length*0.95)];
+    // The budget is spent by DRAWING. The frame interval is the display's
+    // vsync period; comparing it to 8.33 says only that the monitor is 120Hz.
+    fps.textContent=(1000/med).toFixed(0)+' FPS';
+    med_.textContent=dmed.toFixed(2); p95_.textContent=dp95.toFixed(2);
+    const ok=dp95<=8.33;
+    verdict.textContent=ok?('CANVAS2D HOLDS — '+(dp95/8.33*100).toFixed(1)+'% OF BUDGET')
+                          :'OVER BUDGET';
+    verdict.className=ok?'ok':'warn';
+  }
+  requestAnimationFrame(frame);
+}
+const fps=document.getElementById('fps'), med_=document.getElementById('med'),
+      p95_=document.getElementById('p95'), verdict=document.getElementById('verdict');
+requestAnimationFrame(frame);
+const q=(a,p)=>{const s=[...a].sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(s.length*p))];};
+window.__metrics=()=>({
+  n:times.length,
+  frame:{median:q(times,.5),p95:q(times,.95),max:q(times,1)},
+  draw:{median:q(draws,.5),p95:q(draws,.95),max:q(draws,1)},
+});
+</script>
