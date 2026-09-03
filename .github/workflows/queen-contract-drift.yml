@@ -1,0 +1,110 @@
+name: Queen contract drift
+
+# The committed recording of the supervisor's public endpoints goes stale the
+# moment somebody changes a field name in gHashTag/trios. CI asserts against the
+# recording so a Railway outage cannot redden every pull request - which means
+# nothing in CI would ever notice the recording drifting away from reality.
+#
+# This is the job that notices. It talks to the live service on a schedule, and
+# a divergence opens an issue rather than failing a build somebody is waiting
+# on. The distinction matters: "your pull request is broken" and "the world
+# changed under us" deserve different alarms.
+
+on:
+  schedule:
+    # Every six hours. The supervisor changes on the order of days; polling
+    # faster would only produce noise, and the failure this catches is not
+    # urgent - the page keeps rendering, it just stops showing a field.
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check the page against the live supervisor
+        id: check
+        working-directory: apps/website
+        run: |
+          set +e
+          out=$(node scripts/queen-contract-check.mjs --live 2>&1)
+          code=$?
+          echo "$out"
+          {
+            echo 'report<<REPORT'
+            echo "$out"
+            echo 'REPORT'
+          } >> "$GITHUB_OUTPUT"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Open an issue when the contract has drifted
+        if: steps.check.outputs.code != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const report = `${{ steps.check.outputs.report }}`;
+            const title = 'Queen contract drift: the page reads a field the supervisor no longer sends';
+
+            // One issue, reopened and commented, rather than a new one every six
+            // hours. A drift that lasts a week must not produce 28 issues.
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              labels: 'queen-contract',
+              per_page: 10,
+            });
+
+            const body = [
+              'The live supervisor no longer emits every field `apps/website/src/pages/Queen.tsx` declares.',
+              '',
+              '```',
+              report,
+              '```',
+              '',
+              'A field the UI reads and the server never sends renders as nothing, and the build stays green.',
+              '',
+              'Fix by changing the page, then refresh the recording:',
+              '',
+              '```bash',
+              'cd apps/website && node scripts/queen-contract-check.mjs --record',
+              '```',
+            ].join('\n');
+
+            const open = existing.find((i) => i.title === title);
+            if (open) {
+              if (open.state === 'closed') {
+                await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: open.number,
+                  state: 'open',
+                });
+              }
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: open.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['queen-contract'],
+              });
+            }

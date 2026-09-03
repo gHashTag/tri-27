@@ -1,0 +1,120 @@
+name: CI
+
+# The gates that decide. lefthook runs a fast subset of these locally as a
+# courtesy; this is the copy that cannot be skipped with --no-verify.
+#
+# Two rules this file follows, both learned the expensive way in this codebase:
+#
+#   1. A job that cannot run its check must FAIL, not skip. `check:api` printed
+#      "server sources not found - skipping" and exited 0 for as long as the
+#      site has lived outside the monorepo, so it was reported as a passing
+#      check while checking nothing. It is not in the required set below.
+#
+#   2. Nothing here talks to the network on the critical path. The Queen
+#      contract is asserted against a committed recording; a separate scheduled
+#      job compares that recording to the live service, so a Railway outage
+#      opens an issue instead of turning every pull request red.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: apps/website
+
+jobs:
+  gates:
+    name: gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      # Code and documentation are English; translations are not. Ratcheted:
+      # 14,340 Cyrillic characters live in comments and headings today and the
+      # count may only go down.
+      - name: English-only
+        run: node scripts/english-only-check.mjs
+
+      # 179 type errors today, ratcheted per file. Allowed to stay bad, not
+      # allowed to get worse.
+      - name: Typecheck ratchet
+        run: node scripts/typecheck-ratchet.mjs
+
+      # Every field the Queen page reads is emitted by the recording of the
+      # live supervisor. Catches the class of defect that put five permanently
+      # unobtainable metrics on this page for months.
+      - name: Queen contract
+        run: node scripts/queen-contract-check.mjs
+
+      - name: ARIA references
+        run: node scripts/aria-refs-check.mjs
+
+      - name: Build
+        run: bun run build
+
+      # A build proves modules resolved. This opens the page.
+      - name: Render
+        run: node scripts/render-check.mjs
+
+      - name: Upload dist
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: apps/website/dist
+          retention-days: 7
+
+  lint-new-code:
+    name: lint (changed files)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.12'
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      # The tree carries 167 pre-existing eslint errors. Failing the whole
+      # repository on them would mean this job is red on every pull request,
+      # and a job that is always red is a job nobody reads. Only what the pull
+      # request touched is held to the rule.
+      - name: Lint changed files
+        run: |
+          set -euo pipefail
+          base="${{ github.event.pull_request.base.sha }}"
+          files=$(git diff --name-only --diff-filter=ACMR "$base"...HEAD \
+            | grep -E '^apps/website/.*\.(ts|tsx|js|jsx)$' \
+            | sed 's|^apps/website/||' || true)
+          if [ -z "$files" ]; then
+            echo "no JavaScript or TypeScript changed"
+            exit 0
+          fi
+          echo "$files"
+          # shellcheck disable=SC2086
+          npx eslint --no-error-on-unmatched-pattern $files

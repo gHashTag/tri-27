@@ -1,0 +1,688 @@
+{
+  "note": "Recorded from the live supervisor. Refresh with `npm run check:queen -- --record`. Values are illustrative; only the SHAPE is asserted.",
+  "recordedAt": "2026-09-03T07:50:14.412Z",
+  "origin": "https://trios-agent-server-production.up.railway.app",
+  "responses": {
+    "/queen/status": {
+      "status": "ok",
+      "scheduler": {
+        "enabled": true,
+        "intervalSeconds": 300
+      },
+      "lastTick": {
+        "decidedAt": "2026-09-03T07:47:29.903Z",
+        "allowed": false,
+        "refusal": "the swarm has spent about $11 today, $1.37 past its $10 daily limit (raise it with TRIOS_SWARM_DAILY_CAP_USD)",
+        "skippedCount": 0
+      },
+      "dispatches": {
+        "total": 43,
+        "finished": 43,
+        "running": 0,
+        "latest": {
+          "issue": 1329,
+          "dispatchedAt": "2026-09-03T07:32:30.137Z",
+          "finishedAt": "2026-09-03T07:32:30.137Z",
+          "outcome": "4 provider key(s) configured: 1 carrying a bee and 3 refused by the provider - top those up rather than adding another, a refused key is not extra capacity."
+        }
+      }
+    },
+    "/queen/public-board": {
+      "repo": "gHashTag/trios",
+      "columns": [
+        {
+          "key": "backlog",
+          "title": "backlog",
+          "blurb": "declared a boundary, nobody on it"
+        },
+        {
+          "key": "blocked",
+          "title": "blocked",
+          "blurb": "its files are held"
+        },
+        {
+          "key": "running",
+          "title": "running",
+          "blurb": "a bee has it now"
+        },
+        {
+          "key": "review",
+          "title": "in review",
+          "blurb": "holds its boundary until judged"
+        },
+        {
+          "key": "done",
+          "title": "done",
+          "blurb": "accepted or merged"
+        },
+        {
+          "key": "dropped",
+          "title": "dropped",
+          "blurb": "failed or cancelled"
+        }
+      ],
+      "cards": [
+        {
+          "number": 1334,
+          "title": "EPIC: a swarm that does not stop while there is a backlog",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1333,
+          "title": "There is no target queue depth, so running out is indistinguishable from a quiet minute",
+          "column": "done",
+          "criteria": 4
+        },
+        {
+          "number": 1332,
+          "title": "Every escalation waits for a person, including the ones caused by a bad issue",
+          "column": "review",
+          "criteria": 4
+        },
+        {
+          "number": 1331,
+          "title": "RING-00 runs in production and decides nothing; T27-02 does not exist",
+          "column": "done",
+          "criteria": 4
+        },
+        {
+          "number": 1330,
+          "title": "Seven of 23 backlog issues need a build or a screen, which no bee has",
+          "column": "done",
+          "criteria": 4
+        },
+        {
+          "number": 1329,
+          "title": "A sendBack verdict reopens nothing, so every issue gets one attempt",
+          "column": "backlog",
+          "criteria": 4
+        },
+        {
+          "number": 1328,
+          "title": "Half the provider credentials cannot pay and nothing tells the operator",
+          "column": "backlog",
+          "criteria": 4
+        },
+        {
+          "number": 1327,
+          "title": "The Queen cannot refill her own backlog, so the swarm stops within the hour",
+          "column": "backlog",
+          "criteria": 4
+        },
+        {
+          "number": 1326,
+          "title": "Queen gap 2 is undocumented: the bee's VERDICT block carries 0 of the 12 fields section 11.3 requires of a Bee result",
+          "column": "done",
+          "criteria": 11
+        },
+        {
+          "number": 1325,
+          "title": "No written procedure separates a stale issue from a starved one, so the Queen reads merged work as open backlog",
+          "column": "done",
+          "criteria": 12
+        },
+        {
+          "number": 1324,
+          "title": "apps/server/tests/api/pg-migrate.test.ts is 1090 lines: a 620-line SQL parser and two unrelated gates share one file",
+          "column": "done",
+          "criteria": 11
+        },
+        {
+          "number": 1323,
+          "title": "The environment variable that made git refuse https in queen-dispatch is unnamed and lives only in a code comment",
+          "column": "done",
+          "criteria": 12
+        },
+        {
+          "number": 1322,
+          "title": "The Queen has no written priority order, so every task looks equally important",
+          "column": "done",
+          "criteria": 9
+        },
+        {
+          "number": 1321,
+          "title": "EPIC: restore Queen continuous execution and four-account capacity",
+          "column": "backlog",
+          "criteria": 7,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1318,
+          "title": "#1318",
+          "column": "review"
+        },
+        {
+          "number": 1316,
+          "title": "#1316",
+          "column": "review"
+        },
+        {
+          "number": 1312,
+          "title": "Document the observable Queen task-selection contract",
+          "column": "done",
+          "criteria": 4
+        },
+        {
+          "number": 1311,
+          "title": "#1311",
+          "column": "review"
+        },
+        {
+          "number": 1310,
+          "title": "#1310",
+          "column": "done"
+        },
+        {
+          "number": 1309,
+          "title": "#1309",
+          "column": "done"
+        },
+        {
+          "number": 1308,
+          "title": "Expose an anonymous breakdown of effective Bee capacity",
+          "column": "done",
+          "criteria": 5
+        },
+        {
+          "number": 1307,
+          "title": "#1307",
+          "column": "done"
+        },
+        {
+          "number": 1306,
+          "title": "#1306",
+          "column": "done"
+        },
+        {
+          "number": 1304,
+          "title": "#1304",
+          "column": "done"
+        },
+        {
+          "number": 1303,
+          "title": "#1303",
+          "column": "done"
+        },
+        {
+          "number": 1302,
+          "title": "#1302",
+          "column": "done"
+        },
+        {
+          "number": 1301,
+          "title": "#1301",
+          "column": "done"
+        },
+        {
+          "number": 1298,
+          "title": "#1298",
+          "column": "done"
+        },
+        {
+          "number": 1297,
+          "title": "#1297",
+          "column": "done"
+        },
+        {
+          "number": 1296,
+          "title": "#1296",
+          "column": "done"
+        },
+        {
+          "number": 1295,
+          "title": "#1295",
+          "column": "done"
+        },
+        {
+          "number": 1294,
+          "title": "#1294",
+          "column": "done"
+        },
+        {
+          "number": 1293,
+          "title": "#1293",
+          "column": "done"
+        },
+        {
+          "number": 1291,
+          "title": "Enforce English-only GitHub tasks while preserving RU/EN UI",
+          "column": "review",
+          "criteria": 5
+        },
+        {
+          "number": 1290,
+          "title": "#1290",
+          "column": "done"
+        },
+        {
+          "number": 1289,
+          "title": "#1289",
+          "column": "done"
+        },
+        {
+          "number": 1286,
+          "title": "A negative test parks itself in the review queue forever",
+          "column": "review",
+          "criteria": 4,
+          "needs": [
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1285,
+          "title": "RING-04: where f64 lives in the supervisor and what TNF replaces it with",
+          "column": "dropped"
+        },
+        {
+          "number": 1284,
+          "title": "RING-01: the A2A protocol in T27, from the contract that exists",
+          "column": "dropped"
+        },
+        {
+          "number": 1283,
+          "title": "Stands: point at the hardware SSOT instead of forking it",
+          "column": "dropped"
+        },
+        {
+          "number": 1282,
+          "title": "RING-00: Verilog from the same source, checked by simulation",
+          "column": "dropped"
+        },
+        {
+          "number": 1281,
+          "title": "RING-00: parity between the generated Rust and Swift",
+          "column": "dropped"
+        },
+        {
+          "number": 1280,
+          "title": "RING-00: the decision core in T27, generating valid Rust",
+          "column": "done"
+        },
+        {
+          "number": 1279,
+          "title": "EPIC: T27 backend — rings from the decision core to silicon",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1278,
+          "title": "Triage of the failing test suite: 74 tests, grouped by cause",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1276,
+          "title": "make check deleted the Queen's live delegation registry",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1273,
+          "title": "Набор впервые прогнан: 121 тест, 10 падений — и это утверждения о продукте, а не дрейф",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1272,
+          "title": "#1272",
+          "column": "done"
+        },
+        {
+          "number": 1266,
+          "title": "check-selftest сверяет восстановленный файл с копией, из которой его восстановил",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1265,
+          "title": "TRIOS_VENDORED=1 не собирается вовсе: задокументированный путь без trinity мёртв",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1244,
+          "title": "QueenTabView написан под удалённый API trinity: план замены, ждёт слова",
+          "column": "review",
+          "criteria": 4,
+          "needs": [
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1240,
+          "title": "Ключ добавлен пользователем и всё равно не читается: перечисление записей стоит за моими воротами",
+          "column": "review",
+          "criteria": 4,
+          "needs": [
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1216,
+          "title": "#1216",
+          "column": "review"
+        },
+        {
+          "number": 1186,
+          "title": "Заметка о цепи, пройденной целиком",
+          "column": "done"
+        },
+        {
+          "number": 1176,
+          "title": "Сужение ни разу не совпало по имени: проверить себя и молчать",
+          "column": "done",
+          "criteria": 4,
+          "needs": [
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1175,
+          "title": "Сужать только при точном совпадении имени, иначе молчать",
+          "column": "review",
+          "criteria": 4,
+          "needs": [
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1174,
+          "title": "Сужение прячет от себя лучшую улику: имена событий в строковых литералах",
+          "column": "review",
+          "criteria": 5,
+          "needs": [
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1173,
+          "title": "Сужение попадает один раз из четырёх и промахивается в начало файла",
+          "column": "dropped",
+          "criteria": 4,
+          "needs": [
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1172,
+          "title": "Разбор границ берёт прозу за часть пути",
+          "column": "done"
+        },
+        {
+          "number": 1170,
+          "title": "Сухой прогон задания: показать и ничего не тронуть",
+          "column": "done"
+        },
+        {
+          "number": 1164,
+          "title": "Заметка о выборе посильного",
+          "column": "done"
+        },
+        {
+          "number": 1162,
+          "title": "Прогон, который королева начала сама, некому досмотреть",
+          "column": "done"
+        },
+        {
+          "number": 1153,
+          "title": "Обратная проверка счётчика: порог заведомо недостижим",
+          "column": "done"
+        },
+        {
+          "number": 1151,
+          "title": "Ложный отказ: выполненный критерий признан невыполненным",
+          "column": "done"
+        },
+        {
+          "number": 1149,
+          "title": "Параллель C",
+          "column": "done"
+        },
+        {
+          "number": 1147,
+          "title": "Параллель A",
+          "column": "done"
+        },
+        {
+          "number": 1138,
+          "title": "Параллель, пчела вторая: заметка о приёмке",
+          "column": "done"
+        },
+        {
+          "number": 1137,
+          "title": "Параллель, пчела первая: заметка о делегировании",
+          "column": "done"
+        },
+        {
+          "number": 1133,
+          "title": "Приёмка решает раньше, чем приходят вердикты",
+          "column": "review",
+          "criteria": 4,
+          "needs": [
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1132,
+          "title": "Пустой ветке диф показывает удаление файла, которого никто не удалял",
+          "column": "dropped"
+        },
+        {
+          "number": 1131,
+          "title": "Правило устаревания блокирует приёмку всегда: отпечаток состояния никто не записывает",
+          "column": "dropped"
+        },
+        {
+          "number": 1130,
+          "title": "Полный цикл: пчела пишет заметку о ночном прогоне, Королева принимает, открывает PR и сливает",
+          "column": "done"
+        },
+        {
+          "number": 1129,
+          "title": "Номер issue на карточке печатается как количество: #1,124",
+          "column": "done"
+        },
+        {
+          "number": 1128,
+          "title": "Сторож расхождения интерфейсов должен запускаться сам перед приёмкой",
+          "column": "done"
+        },
+        {
+          "number": 1127,
+          "title": "Судья и подсудимый — одна модель: ревьюер должен быть противником, а не собой",
+          "column": "review",
+          "criteria": 4,
+          "needs": [
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1111,
+          "title": "Границы по файлам не спасают от расхождения интерфейса: две пчелы, разные файлы, сломанная сборка",
+          "column": "done"
+        },
+        {
+          "number": 1090,
+          "title": "EPIC: Королева-надзиратель — спецификация на чат и полный цикл до мержа",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1089,
+          "title": "TriOSKitTests: 25 test files excluded from CI - 15 do not compile, 10 fail",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements"
+          ]
+        },
+        {
+          "number": 1086,
+          "title": "Cycle 52: LOGS tab noise rule auto-suggest",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1085,
+          "title": "Cycle 51: noise profile import/export with schema versioning",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1084,
+          "title": "Cycle 50: per-source noise profiles in TriOS LOGS tab",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1083,
+          "title": "chore(spec): propose anonymised scene + ring-runtime .tri specs upstream in t27",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1067,
+          "title": "chore(trios): commit uncommitted Cargo.toml + lib.rs (+159 lines)",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 1062,
+          "title": "fix(a2a): trios-agent offline — reconnect + auto-recovery",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 957,
+          "title": "TRIOS_PHD_NO_IMAGE_TRAIN: anchor hero panels via Needspace, ban hard clearpage",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        },
+        {
+          "number": 380,
+          "title": "🌻 GOLDEN SUNFLOWERS — Trinity S³AI / Flos Aureus (UNIFIED v6.2 · 98 ch · 2.53M ch · 2173 thm)",
+          "column": "backlog",
+          "criteria": 0,
+          "needs": [
+            "boundary",
+            "scenarios",
+            "requirements",
+            "success criteria"
+          ]
+        }
+      ],
+      "pulse": {
+        "rounds": 1,
+        "bees": 15,
+        "verdicts": 16,
+        "lastRoundAt": "2026-09-03T07:47:29.903Z",
+        "roundSeconds": 300
+      }
+    }
+  }
+}

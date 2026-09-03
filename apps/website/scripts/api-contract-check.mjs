@@ -25,9 +25,21 @@ import { join } from 'node:path';
 // by a different service -- swarm, DHT and TRI token metrics do not come from
 // the consciousness endpoint. "Not emitted" must mean "by anything", or the
 // checker manufactures its own findings. See anomaly-register A06.
-const SRC = '../../src';
+// The Zig sources stayed in gHashTag/trinity when the site moved out of that
+// monorepo on 2026-09-03. From here the path does not resolve, and this printed
+// "skipping" and exited 0 -- a check that had stopped checking anything while
+// still reporting success, which is the exact failure mode the rest of this
+// file was written to prevent.
+//
+// It is not silently green any more. Point it at a trinity checkout to run it:
+//   TRINITY_SRC=~/trinity/src npm run check:api
+const SRC = process.env.TRINITY_SRC ?? '../../src';
 if (!existsSync(SRC)) {
-  console.log('  server sources not found — skipping (nothing to compare against)');
+  console.log('  SKIPPED, NOT PASSED: no server sources at ' + SRC);
+  console.log('  This check compares the UI against the Zig services in');
+  console.log('  gHashTag/trinity, which is a different repository now.');
+  console.log('  Set TRINITY_SRC=<path to trinity/src> to actually run it.');
+  console.log('  The Queen contract is covered by check:queen instead.');
   process.exit(0);
 }
 function zigFiles(dir, out = []) {

@@ -1,0 +1,75 @@
+# TRI-27 hooks.
+#
+# The rule these follow: a hook that is slow gets bypassed with --no-verify, and
+# a hook that is bypassed is not a hook. So pre-commit only runs checks that
+# finish in about a second on the files you actually staged, and everything that
+# needs the whole tree waits for pre-push.
+#
+# Every gate here has a matching CI job. The hooks are a courtesy that saves a
+# round trip; CI is the thing that decides. A gate that exists only locally is
+# one `--no-verify` away from never having existed.
+#
+# Install:  lefthook install
+# Skip once (say so in the PR):  LEFTHOOK=0 git commit ...
+
+pre-commit:
+  parallel: true
+  commands:
+    # Code and documentation are English; translations are not. Comments and
+    # identifiers are checked, string literals and messages/ are not. See
+    # apps/website/scripts/english-only-check.mjs for why the two are separated.
+    english-only:
+      root: apps/website/
+      glob: '*.{ts,tsx,js,jsx,mjs,cjs,css,scss,md,yml,yaml,sh}'
+      run: node scripts/english-only-check.mjs --staged
+
+    # Only the staged files. The tree carries 167 pre-existing eslint errors and
+    # blocking every commit on them would teach everyone to pass --no-verify,
+    # which costs more than the errors do. New code is held to the rule.
+    eslint:
+      root: apps/website/
+      glob: '*.{ts,tsx,js,jsx}'
+      run: npx eslint --no-error-on-unmatched-pattern {staged_files}
+
+    # ARIA id references, whole tree, ~1s. An aria-controls pointing at an id
+    # nobody declares is invisible to a build, to a screenshot and to a reader -
+    # assistive technology follows it, finds nothing, and the control silently
+    # loses its relationship.
+    aria-refs:
+      root: apps/website/
+      glob: '*.{tsx,jsx,html}'
+      run: node scripts/aria-refs-check.mjs
+
+pre-push:
+  parallel: false
+  commands:
+    # The typecheck may stay bad; it may not get worse. 179 errors today,
+    # ratcheted per file.
+    typecheck:
+      root: apps/website/
+      run: npm run typecheck:ratchet
+
+    # Every field the Queen page reads must be one the supervisor emits. Runs
+    # against a committed recording, so a Railway outage cannot fail a push.
+    queen-contract:
+      root: apps/website/
+      run: node scripts/queen-contract-check.mjs
+
+    # Green means "modules resolved", which is not the same as "the page
+    # renders". This one opens it.
+    build:
+      root: apps/website/
+      run: npm run build
+
+commit-msg:
+  commands:
+    # node, not `grep -P`. BSD grep on macOS does not support -P and exits 2
+    # with "invalid option", which a shell reads as "no match found" - so the
+    # obvious one-liner passes every message it was written to reject, on the
+    # only platform this repository is developed on.
+    english-only-message:
+      run: >
+        node -e "const t=require('fs').readFileSync(process.argv[1],'utf8');
+        const c=t.replace(/^#.*$/gm,'').match(/[Ѐ-ӿ]/g);
+        if(c){console.error('Commit messages are English. Found '+c.length+' Cyrillic character(s).');process.exit(1)}"
+        "{1}"

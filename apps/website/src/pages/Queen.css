@@ -160,3 +160,102 @@
 .queen-episode p { margin: 0.4rem 0; line-height: 1.5; }
 .queen-episode .ok { color: #4caf50; }
 .queen-episode .bad { color: #e05252; }
+
+/*
+ * The board.
+ *
+ * The operator's complaint about the earlier board was two words: it does not
+ * fit. Six columns of eighty-six cards ran off both edges of the viewport and
+ * the page grew a horizontal scrollbar, so the columns at the ends were simply
+ * invisible.
+ *
+ * The rule here: the PAGE never scrolls sideways, and no column is ever cut
+ * off. Columns wrap to as many rows as they need, each column owns its own
+ * vertical scroll, and the height is bounded by the viewport rather than by the
+ * card count. A column with forty cards is the same height as one with two.
+ */
+.queen-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.queen-board-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--border, #26262e);
+  border-radius: 10px;
+  padding: 0.6rem;
+  background: var(--bg-subtle, #131318);
+}
+
+.queen-board-col > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.queen-board-count {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+  color: var(--accent, #7c5cff);
+}
+
+.queen-board-blurb {
+  margin: 0 0 0.5rem;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: var(--text-muted, #9a9aa2);
+}
+
+/*
+ * min-height:0 is the load-bearing line. Without it a flex child refuses to
+ * shrink below its content, the overflow never engages, and the column grows
+ * until the card list pushes the page open again - the exact failure this
+ * block exists to prevent, reintroduced silently.
+ */
+.queen-board-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 0;
+  max-height: 46vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.queen-board-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  background: var(--bg, #0d0d12);
+  border-left: 3px solid var(--border, #26262e);
+}
+
+.queen-board-card code {
+  font-size: 0.74rem;
+  color: var(--accent, #7c5cff);
+}
+
+.queen-board-card span {
+  font-size: 0.82rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.queen-board-card em {
+  font-size: 0.72rem;
+  font-style: normal;
+  color: var(--text-muted, #9a9aa2);
+}
+
+/* A card with no acceptance criteria cannot be delegated - the bee would have
+ * nothing to be judged against. Marking it is the difference between a backlog
+ * and a list. */
+.queen-board-needs { color: #ff9800; }

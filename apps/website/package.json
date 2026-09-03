@@ -17,7 +17,9 @@
     "check:aria": "node scripts/aria-refs-check.mjs",
     "typecheck:update": "node scripts/typecheck-ratchet.mjs --update",
     "audit:en": "node qa/lang_audit.mjs",
-    "audit:ru": "node qa/ru_audit.mjs"
+    "audit:ru": "node qa/ru_audit.mjs",
+    "check:english": "node scripts/english-only-check.mjs",
+    "check:queen": "node scripts/queen-contract-check.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
