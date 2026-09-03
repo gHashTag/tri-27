@@ -1,0 +1,329 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Queen comb — ground textures and a portrait panel</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500&display=swap');
+  html,body{margin:0;height:100%;background:#020806;color:#fff;font-family:'Outfit',system-ui,sans-serif;overflow:hidden}
+  canvas{display:block;width:100vw;height:100vh;cursor:grab}canvas.drag{cursor:grabbing}
+  .p{position:fixed;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#7a7a82;line-height:1.9;pointer-events:none}
+  #hud{top:14px;left:16px;font-size:12px}#hud b{color:#FFD45A;font-weight:500}
+  .ok{color:#00FF88}.warn{color:#ff8a6b}
+  #leg{bottom:14px;left:16px}#hint{bottom:14px;right:16px;color:rgba(255,255,255,.22)}
+  #sel{top:14px;right:16px;text-align:right}
+  .sw{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px}
+  #portrait{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);text-align:center;
+    display:none;pointer-events:none}
+  #portrait img{width:96px;height:96px;display:block;margin:0 auto 4px}
+  #portrait .name{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#FFD45A}
+  #portrait .stage{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#7a7a82}
+</style>
+<canvas id="c"></canvas>
+<div id="hud" class="p">
+  <div>COMB · <b id="nt">—</b> CELLS · <b id="nr">—</b> ROWS · EVERY CELL IS THE MARK</div>
+  <div>HELD <b id="own">—</b> · NEUTRAL <b id="neu">—</b> · UNSCOUTED <b id="fog">—</b> · BEES <b id="bees">—</b></div>
+  <div>DRAW <b id="dm">—</b> MS · P95 <b id="dp">—</b> MS · <span id="v" class="ok">—</span></div>
+</div>
+<div id="sel" class="p"></div>
+<div id="portrait"><img id="portraitImg" alt=""><div class="name" id="portraitName"></div><div class="stage" id="portraitStage"></div></div>
+<div id="leg" class="p">
+  <div><i class="sw" style="background:#FFD45A"></i>+1 WORKING</div>
+  <div><i class="sw" style="background:#64DCFF"></i>&nbsp;0 IDLE</div>
+  <div><i class="sw" style="background:#FF6B6B"></i>&minus;1 REFUSED</div>
+</div>
+<div id="hint" class="p">DRAG TO ORBIT · WHEEL TO ZOOM · 3-9 ROWS · CLICK A CELL</div>
+<script>
+const P=["M543.609 639.667L490.537 546.456L468.444 585.304L543.609 717.477V639.667Z","M489.786 545.199L438.209 453.966H393.861L467.788 584.09L489.786 545.199Z","M384.525 360.512L436.994 452.791L393.091 452.811L319.18 322.035L384.525 360.512Z","M319.922 320.841L385.231 358.858H489.638L468.408 320.815L319.922 320.841Z","M469.854 320.81L491.695 358.618L596.337 358.912L618.433 320.801L469.854 320.81Z","M703.129 359.011L598.207 358.965L619.983 321.06L767.697 321.125L703.129 359.011Z","M702.54 360.827L650.501 452.677L695.338 452.697L769.614 321.531L702.54 360.827Z","M598.155 544.433L620.701 584.062L694.724 453.922L649.575 453.972L598.155 544.433Z","M544.819 639.162L597.407 545.611L619.959 585.522L544.819 717.812V639.162Z","M543.946 567.149L511.486 510.031L491.755 544.962L543.946 636.825V567.149Z","M510.857 508.805L479.79 454.184H440.322L490.965 543.644L510.857 508.805Z","M479.052 452.892L447.096 396.758L387.857 362.23L439.599 453.267L479.052 452.892Z","M389.427 361.072L447.673 395.597L511.235 395.595L491.23 360.678L389.427 361.072Z","M512.836 395.557L576.043 395.537L595.834 360.751H492.923L512.836 395.557Z","M577.573 395.548L641.433 395.482L700.284 360.835H597.379L577.573 395.548Z","M641.979 396.644L609.958 452.951L649.135 452.858L700.736 362.59L641.979 396.644Z","M578.24 508.803L597.734 543.266L648.408 454.174L609.263 454.131L578.24 508.803Z","M545.483 567.025L577.45 510.047L597.043 544.548L545.483 635.215V567.025Z","M543.157 496.408L530.886 474.893L511.632 508.976L543.157 564.23V496.408Z","M510.799 507.831L530.268 473.478L519.428 454.358L480.586 454.341L510.799 507.831Z","M506.749 432.127L518.606 453.09L479.871 453.107L448.64 398.108L506.749 432.127Z","M507.208 431.026L530.649 431.016L511.365 397.077L449.27 397.105L507.208 431.026Z","M512.645 397.101L531.982 430.989H555.007L574.428 397.101H512.645Z","M580.435 431.079L556.539 431.069L575.922 397.106L638.353 397.134L580.435 431.079Z","M580.705 432.287L568.987 453.102L607.741 453.119L638.937 398.141L580.705 432.287Z","M576.766 507.787L557.383 473.503L568.216 454.334L607.09 454.317L576.766 507.787Z","M544.716 496.337L556.648 474.865L575.81 509.007L544.716 564.007V496.337Z"];
+function parse(d){const t=d.match(/[MLHVZ]|-?\d*\.?\d+/g),p=[];let i=0,c='M',x=0,y=0;
+  while(i<t.length){if(/[MLHVZ]/.test(t[i])){c=t[i++];if(c==='Z')break;continue}
+  if(c==='H')x=+t[i++];else if(c==='V')y=+t[i++];else{x=+t[i++];y=+t[i++]}p.push([x,y])}return p}
+const RAW=P.map(parse);
+
+// The mark's silhouette, measured off the SVG: a point-down triangle, flat
+// base at y=320.8 from x=319.9 to 769.6, apex at (544, 717.8). h/w = 0.881
+// against 0.866 for equilateral - close enough that the tiling closes if we
+// normalise to an exact equilateral of side 1 and let the 1.8% ride.
+const BASE_Y=320.8, APEX_Y=717.8, L=319.9, Rr=769.6, W0=Rr-L, H0=APEX_Y-BASE_Y;
+const CX=(L+Rr)/2;
+// map the mark into a canonical point-DOWN equilateral: base y=-h/2, apex y=+h/2
+const SIDE=1, HT=SIDE*Math.sqrt(3)/2;
+// a point-down equilateral of height HT with base at y=-HT/3 and apex at
+// y=+2HT/3 has its centroid at the origin - so place() can add the centroid
+const PET=RAW.map(g=>g.map(([x,y])=>[(x-CX)/W0*SIDE, (y-BASE_Y)/H0*HT-HT/3]));
+
+const EDGES=[],VERT=[],vmap=new Map();
+PET.forEach((poly,pi)=>{const ring=(pi/9)|0;
+  for(let i=0;i<poly.length;i++){const A=poly[i],B=poly[(i+1)%poly.length];
+    EDGES.push([A[0],A[1],B[0],B[1]]);
+    const k=A[0].toFixed(4)+','+A[1].toFixed(4);
+    if(!vmap.has(k)){vmap.set(k,VERT.length);VERT.push({x:A[0],y:A[1],ring,deg:1})}else VERT[vmap.get(k)].deg++;}});
+const NODES=VERT.filter(v=>v.deg>=2);
+
+// ---- the comb: a triangular tiling. Row r holds cells alternating down/up;
+// an up-cell is the mark rotated 180 degrees. Neighbours SHARE edges - that is
+// what makes it a comb rather than marks sitting in a comb.
+const S=150, HH=S*Math.sqrt(3)/2;
+let ROWS=6, cells=[];
+const BEES=[]; let hover=-1,picked=-1;
+// Engraved sprites, produced by the pipeline in ../sprites/PIPELINE.md:
+// copperplate line-work rendered black-on-white, ink turned into alpha, tinted
+// to the live page gold. One image per bee line; the Queen sits at the centre.
+const SPR={};
+const LINES=['scribe','wright','lapidary'];
+// Stages from evolving-bees.md 2.2, in order. LARVA is one sprite for all lines
+// (nothing about a grub says which line it will become); every later stage is
+// one render per line, so the atlas is 1 + 3*4 = 13 sprites plus the Queen.
+const STAGES=['larva','forager','artisan','warden','archon'];
+function load(n){const im=new Image();im.src='../sprites/'+n+'-256.png';SPR[n]=im}
+load('queen');load('larva');
+for(const l of LINES){load(l);for(const st of STAGES.slice(1))load(l+'-'+st)}
+// Ground textures (one flat plate per ownership state) and portraits (one bust
+// per line + the Queen), same loader, same ../sprites/ atlas.
+const GROUND_TEX={}, PORTRAIT={};
+for(const k of ['held','neutral','fog']){const im=new Image();im.src='../sprites/ground-'+k+'-256.png';GROUND_TEX[k]=im}
+for(const k of ['queen',...LINES]){const im=new Image();im.src='../sprites/portrait-'+k+'-256.png';PORTRAIT[k]=im}
+// The stage gate, verbatim from the study (accepted turns; rescues and replays
+// are the WARDEN/ARCHON gates). ARCHON is unreachable today and is drawn from
+// the seed only so the ladder can be seen.
+function stageOf(b){
+  if(b.replayed>=1)return 'archon';
+  if(b.rescues>=1)return 'warden';
+  if(b.accepted>=3&&b.cleanAccepts>=1)return 'artisan';
+  if(b.accepted>=1)return 'forager';
+  return 'larva';
+}
+function spriteFor(b){const st=stageOf(b);
+  if(st==='larva')return SPR.larva;
+  return SPR[b.line+'-'+st]&&SPR[b.line+'-'+st].naturalWidth?SPR[b.line+'-'+st]:SPR[b.line];}
+function build(rows){
+  ROWS=rows; cells=[];
+  const cols=rows+2;
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols*2-1;c++){
+      // In a triangular tiling every row is a strip of alternating down/up
+      // triangles, and each row is offset by HALF a cell from the row above
+      // - so the apex of a down-cell lands exactly on the base of the two
+      // cells below it, and every edge is shared by two cells. Without the
+      // per-row shift the strips slide past each other and the comb opens.
+      // Solved in isolation before touching the page: rows are NOT shifted.
+      // Row r owns the strip y in [r*HH, (r+1)*HH]. A down-cell has its base
+      // on the strip's top line and its apex on the bottom line; an up-cell
+      // the reverse. Alternating orientation on (c+r) makes every interior
+      // vertex the meeting point of exactly six cells (verified: degree 6 on
+      // all 30 interior vertices of a 6x14 field), so every edge is shared.
+      const up=((c+r)&1)===1;
+      const x=(c-(cols*2-2)/2)*S/2;
+      const yTop=(r-rows/2)*HH;                 // top line of this row's strip
+      const cy=yTop+(up?HH*2/3:HH/3);          // centroid: HH/3 from the base
+      const i=cells.length;
+      cells.push({x,y:cy,up,i,yTop,
+        own:(i*5+((i*i)%7))%11===0?'fog':((i*3+(i%5))%3===0?'held':'neutral'),
+        word:Array.from({length:27},(_,j)=>[-1,0,1][(i*7+j*5+((i*j)%3))%3]),
+        phase:i*0.37});
+    }
+  }
+  nt.textContent=cells.length; nr.textContent=rows;
+  own.textContent=cells.filter(t=>t.own==='held').length;
+  neu.textContent=cells.filter(t=>t.own==='neutral').length;
+  fog.textContent=cells.filter(t=>t.own==='fog').length;
+  BEES.length=0;
+  for(let b=0;b<Math.max(10,(cells.length/6)|0);b++){
+    // seeded ledger per bee, so every stage appears on the field
+    const acc=[0,1,3,4,6][b%5], clean=acc>=3?1:0, resc=b%5===3?1:0, rep=b%5===4?1:0;
+    const bee={from:(b*7)%cells.length,to:(b*7+4)%cells.length,t:(b%5)/5,line:LINES[b%3],accepted:acc,cleanAccepts:clean,rescues:resc,replayed:rep};
+    bee.stage=stageOf(bee); bee.speed=bee.stage==='larva'?0:.10+.05*(b%3)+.02*STAGES.indexOf(bee.stage);
+    BEES.push(bee);
+  }
+  bees.textContent=BEES.length;
+}
+
+const GL={};
+function sprite(col,r,alpha){const s=r*2,cv2=document.createElement('canvas');cv2.width=cv2.height=s;
+  const x=cv2.getContext('2d');x.globalAlpha=alpha;const gr=x.createRadialGradient(r,r,0,r,r,r);
+  gr.addColorStop(0,'#fff');gr.addColorStop(.22,col);gr.addColorStop(.55,col+'55');gr.addColorStop(1,col+'00');
+  x.fillStyle=gr;x.beginPath();x.arc(r,r,r,0,6.2832);x.fill();
+  x.strokeStyle=col+'aa';x.lineWidth=1;x.beginPath();x.moveTo(r,2);x.lineTo(r,s-2);x.moveTo(2,r);x.lineTo(s-2,r);x.stroke();return cv2}
+const NINE=[['#FFD45A','#00FF88','#64DCFF'],['#d4af37','#00e599','#3f9fc4'],['#FF6B6B','#ff66aa','#7c5cff']];
+const ALPHA=[.30,.58,.90];
+for(let t=0;t<3;t++)for(let r=0;r<3;r++)for(let b=0;b<3;b++)GL[t+':'+r+':'+b]=sprite(NINE[t][r],16,ALPHA[b]);
+
+const cv=document.getElementById('c'),g=cv.getContext('2d',{alpha:false});
+let W,H,DPR=Math.min(devicePixelRatio||1,2);
+function resize(){W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;g.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener('resize',resize);resize();
+
+let yaw=0,pitch=0.62,dist=480,drag=null,auto=true;
+cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};auto=false;cv.classList.add('drag');cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;yaw+=(e.clientX-drag.x)*.006;
+  pitch=Math.max(0,Math.min(1.5,pitch+(e.clientY-drag.y)*.005));drag={x:e.clientX,y:e.clientY}});
+addEventListener('pointerup',()=>{drag=null;cv.classList.remove('drag')});
+cv.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(200,Math.min(6000,dist*(1+e.deltaY*.0012)))},{passive:false});
+addEventListener('keydown',e=>{if(/[3-9]/.test(e.key))build(+e.key)});
+cv.addEventListener('mousemove',e=>{let best=-1,bd=1e9;
+  for(let i=0;i<cells.length;i++){const c=proj(cells[i].x,cells[i].y,0);
+    const d=(c[0]-e.clientX)**2+(c[1]-e.clientY)**2;if(d<bd){bd=d;best=i}}
+  hover=bd<(S*0.30)**2?best:-1});
+cv.addEventListener('click',()=>{if(hover>=0)picked=hover});
+
+function proj(x,y,z){const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+  const X=x*cy+y*sy,Y2=-x*sy+y*cy;const Y=Y2*cp-z*sp,Z=Y2*sp+z*cp;
+  const f=dist/(dist+Z+430);return [W/2+X*f,H/2+Y*f,Z,f]}
+
+// the three corners of a cell in world space
+// Corners come from the SAME strip lines build() used, never re-derived from
+// the centroid - the two formulas drifted once and the ground triangles slid
+// off the marks by a third of a cell.
+function corners(c){const yB=c.yTop+HH;
+  return c.up ? [[c.x-S/2,yB],[c.x+S/2,yB],[c.x,c.yTop]]
+              : [[c.x-S/2,c.yTop],[c.x+S/2,c.yTop],[c.x,yB]]}
+
+const draws=[],PASS={};let t0=performance.now(),lastT=t0;
+function frame(n){render(n);requestAnimationFrame(frame)}
+function render(now){
+  const dt=now-lastT;lastT=now;const d0=performance.now();
+  if(auto)yaw=Math.sin((now-t0)/9000)*0.35;   // sway, never a full spin: rows must stay readable
+  const t=(now-t0)/1000;
+  g.fillStyle='#020806';g.fillRect(0,0,W,H);
+
+  // GROUND: every cell is a triangle; fill by ownership. No hexagon anywhere.
+  // A flat colour carries the state (unconditional, so the field never regresses
+  // if a texture fails to load); an engraved plate texture is stretched over the
+  // triangle's bounding box and clipped to it, at low alpha, as surface detail.
+  // Stretch-and-clip is a shortcut, not a projection: with only three texture
+  // variants across ~90 cells the repeat is visible up close by design - see
+  // sprites/PIPELINE.md for the tradeoff.
+  const GROUND={held:'#0a1a12',neutral:'#090c0f',fog:'#040504'};
+  for(let i=0;i<cells.length;i++){const c=cells[i];
+    const k=corners(c).map(p=>proj(p[0],p[1],0));
+    g.beginPath();g.moveTo(k[0][0],k[0][1]);g.lineTo(k[1][0],k[1][1]);g.lineTo(k[2][0],k[2][1]);g.closePath();
+    g.fillStyle=i===picked?'#12241a':i===hover?'#0d1a14':GROUND[c.own];g.fill();
+    const tex=GROUND_TEX[c.own];
+    if(tex&&tex.naturalWidth){
+      const xs=k.map(p=>p[0]),ys=k.map(p=>p[1]);
+      const bx=Math.min(...xs),by=Math.min(...ys),bw=Math.max(...xs)-bx,bh=Math.max(...ys)-by;
+      if(bw>4&&bh>4){
+        g.save();g.beginPath();g.moveTo(k[0][0],k[0][1]);g.lineTo(k[1][0],k[1][1]);g.lineTo(k[2][0],k[2][1]);g.closePath();g.clip();
+        g.globalAlpha=c.own==='held'?0.55:c.own==='neutral'?0.38:0.20;
+        g.drawImage(tex,bx,by,bw,bh);
+        g.globalAlpha=1;g.restore();
+      }
+    }
+  }
+  const _t1=performance.now();
+
+  // WALLS: the mark's 135 edges, per cell. Because the mark's outer three edges
+  // ARE the cell boundary, adjacent cells share their wall - the comb.
+  // Two passes so the comb is never torn: unscouted cells keep every wall,
+  // drawn at a tenth of the weight - fog of war dims a place, it does not
+  // delete it. Only the light goes out there.
+  for(const pass of [['fog','rgba(232,232,240,.06)'],['lit','rgba(232,232,240,.46)']]){
+    g.strokeStyle=pass[1];g.lineWidth=.7;g.beginPath();
+    for(const c of cells){if((c.own==='fog')!==(pass[0]==='fog'))continue;
+      const o=proj(c.x,c.y,0),sc=S*o[3],m=c.up?-1:1;
+      if(sc<8)continue;
+      for(let e=0;e<EDGES.length;e++){const E=EDGES[e];
+        g.moveTo(o[0]+E[0]*sc*m,o[1]+E[1]*sc*m);g.lineTo(o[0]+E[2]*sc*m,o[1]+E[3]*sc*m)}}
+    g.stroke();
+  }
+  // held territory gets its boundary in green, drawn once over the silver
+  g.strokeStyle='rgba(0,255,136,.55)';g.lineWidth=1.1;g.beginPath();
+  for(const c of cells){if(c.own!=='held')continue;
+    const k=corners(c).map(p=>proj(p[0],p[1],0));
+    g.moveTo(k[0][0],k[0][1]);g.lineTo(k[1][0],k[1][1]);g.lineTo(k[2][0],k[2][1]);g.closePath()}
+  g.stroke();
+  if(picked>=0){const k=corners(cells[picked]).map(p=>proj(p[0],p[1],0));
+    g.strokeStyle='#FFD45A';g.lineWidth=1.8;g.beginPath();
+    g.moveTo(k[0][0],k[0][1]);g.lineTo(k[1][0],k[1][1]);g.lineTo(k[2][0],k[2][1]);g.closePath();g.stroke()}
+  const _t2=performance.now();
+
+  // NODES: the 27 shared vertices per cell, one trit each
+  let lit=0;g.globalCompositeOperation='lighter';
+  for(const c of cells){if(c.own==='fog')continue;
+    const o=proj(c.x,c.y,0),sc=S*o[3],m=c.up?-1:1;if(sc<8)continue;
+    for(let vi=0;vi<NODES.length;vi++){const V=NODES[vi],trit=c.word[vi];
+      const pulse=.55+.45*Math.sin(t*1.6+c.phase+vi*.21);
+      const size=(trit>0?7:trit===0?5:4)*(sc/300)*(.75+.5*pulse);if(size<.5)continue;
+      const X=o[0]+V.x*sc*m,Y=o[1]+V.y*sc*m;if(X<-size||X>W+size||Y<-size||Y>H+size)continue;
+      const ti=trit>0?0:trit===0?1:2,b=pulse>.78?2:pulse>.5?1:0;
+      g.drawImage(GL[ti+':'+V.ring+':'+(ti===0?b:Math.min(b,1))],X-size,Y-size,size*2,size*2);lit++}}
+  g.globalCompositeOperation='source-over';
+  const _t3=performance.now();
+
+  // THE QUEEN, on the centre cell, above her hexagonal core
+  {const q=cells[(cells.length/2)|0]; if(q){const c=proj(q.x,q.y,18),qs=Math.max(24,S*0.95*c[3]);
+    const im=SPR.queen; if(im&&im.complete&&im.naturalWidth){
+      const sh=proj(q.x,q.y,0); g.fillStyle='rgba(0,0,0,.6)';g.beginPath();g.ellipse(sh[0],sh[1],qs*.5,qs*.18,0,0,6.2832);g.fill();
+      g.drawImage(im,c[0]-qs,c[1]-qs*1.15,qs*2,qs*2)}}}
+  // BEES
+  for(const b of BEES){b.t+=b.speed*Math.min(dt,32)/1000;
+    if(b.t>=1){b.t=0;b.from=b.to;b.to=(b.to+3+((b.from*7)%5))%cells.length}
+    const A=cells[b.from],B=cells[b.to];if(!A||!B)continue;
+    const e=b.t<.5?2*b.t*b.t:1-2*(1-b.t)*(1-b.t);
+    // a larva stays in its cell at ground level; only winged stages fly the arc
+    const x=A.x+(B.x-A.x)*e,y=A.y+(B.y-A.y)*e,arc=b.stage==='larva'?2:Math.sin(Math.PI*b.t)*46;
+    const PHI=1.618, k=Math.pow(PHI,STAGES.indexOf(b.stage)-2);   // larva phi^-2 ... archon phi^2
+    const c=proj(x,y,arc),sz=Math.max(8,S*0.42*c[3]*Math.min(k,1.6)),sh=proj(x,y,0);
+    g.fillStyle='rgba(0,0,0,.55)';g.beginPath();g.ellipse(sh[0],sh[1],sz*.55,sz*.2,0,0,6.2832);g.fill();
+    const im=spriteFor(b);
+    if(im&&im.complete&&im.naturalWidth){
+      // face the direction of travel: the master sprite faces left-to-right
+      const flip=(B.x-A.x)<0;
+      g.save();g.translate(c[0],c[1]);if(flip)g.scale(-1,1);
+      // wing beat: a small vertical bob, never a scale change (scale reads as distance)
+      const bob=Math.sin(now/90+b.from)*sz*0.04;
+      g.drawImage(im,-sz,-sz+bob,sz*2,sz*2);g.restore();
+    }else{
+      g.fillStyle='#FFD45A';g.beginPath();g.arc(c[0],c[1],sz*.25,0,6.2832);g.fill();
+    }}
+  // THE LADDER - every stage of every line, so evolution reads side by side
+  {const cellW=Math.min(84,(W-32)/15), y0=H-cellW-40;
+    g.font='9px Outfit,system-ui';g.textAlign='center';g.fillStyle='rgba(255,255,255,.35)';
+    let i=0;
+    for(const st of STAGES){for(const l of (st==='larva'?['larva']:LINES)){
+      const im=st==='larva'?SPR.larva:SPR[l+'-'+st]; const x=16+cellW*i+cellW/2;
+      if(im&&im.naturalWidth){const k=Math.pow(1.618,STAGES.indexOf(st)-2),s2=cellW*0.42*Math.min(k,1.5);
+        g.drawImage(im,x-s2,y0+cellW/2-s2,s2*2,s2*2)}
+      else{g.strokeStyle='rgba(255,212,90,.25)';g.strokeRect(x-cellW*.3,y0+cellW*.2,cellW*.6,cellW*.6)}
+      // two-line label: line letter above, stage below, so 13 labels do not collide
+      if(st==='larva'){g.fillText('LARVA',x,y0+cellW+12)}
+      else{g.fillText(l.toUpperCase(),x,y0+cellW+10);g.fillText(st.toUpperCase(),x,y0+cellW+22)}
+      i++}}
+    g.textAlign='start'}
+  const _t4=performance.now();
+  PASS.ground=_t1-d0;PASS.walls=_t2-_t1;PASS.nodes=_t3-_t2;PASS.bees=_t4-_t3;PASS.lit=lit;
+
+  const dms=performance.now()-d0;draws.push(dms);if(draws.length>180)draws.shift();
+  if(draws.length>20){const s=[...draws].sort((x,y)=>x-y),m=s[s.length>>1],p=s[Math.floor(s.length*.95)];
+    dm.textContent=m.toFixed(2);dp.textContent=p.toFixed(2);
+    v.textContent=p<=8.33?('CANVAS2D HOLDS — '+(p/8.33*100).toFixed(0)+'%'):'OVER BUDGET';v.className=p<=8.33?'ok':'warn';
+    if(picked>=0&&cells[picked]){const c=cells[picked],pos=c.word.filter(x=>x>0).length,zer=c.word.filter(x=>x===0).length,neg=c.word.filter(x=>x<0).length;
+      sel.innerHTML='CELL '+picked+' · '+c.own.toUpperCase()+' · '+(c.up?'UP':'DOWN')+'<br><b style="color:#FFD45A">+1</b> '+pos+' &nbsp; <b style="color:#64DCFF">0</b> '+zer+' &nbsp; <b style="color:#FF6B6B">&minus;1</b> '+neg+'<br>27-TRIT WORD'}
+    // THE PORTRAIT PANEL. A bee's nearest cell is `from` in the first half of
+    // its flight, `to` in the second - the same cell index the field already
+    // uses for ownership and the trit word, so no new data model is needed.
+    const queenCell=(cells.length/2)|0;
+    const here=picked>=0?BEES.find(b=>(b.t<0.5?b.from:b.to)===picked):null;
+    if(picked===queenCell&&PORTRAIT.queen.naturalWidth){
+      portraitImg.src=PORTRAIT.queen.src;portraitName.textContent='THE QUEEN';portraitStage.textContent='';
+      portrait.style.display='block';
+    }else if(here&&PORTRAIT[here.line]&&PORTRAIT[here.line].naturalWidth){
+      portraitImg.src=PORTRAIT[here.line].src;
+      portraitName.textContent=here.line.toUpperCase();
+      portraitStage.textContent=here.stage.toUpperCase();
+      portrait.style.display='block';
+    }else{
+      portrait.style.display='none';
+    }
+  }
+  return dms;
+}
+const $=id=>document.getElementById(id);
+const nt=$('nt'),nr=$('nr'),own=$('own'),neu=$('neu'),fog=$('fog'),bees=$('bees'),dm=$('dm'),dp=$('dp'),v=$('v'),sel=$('sel');
+const portrait=$('portrait'),portraitImg=$('portraitImg'),portraitName=$('portraitName'),portraitStage=$('portraitStage');
+build(ROWS);requestAnimationFrame(frame);
+window.__bench=(rows,iters=120,warm=30)=>{build(rows);dist=Math.max(300,rows*S*0.50);yaw=0;pitch=.62;auto=false;
+  const base=performance.now();for(let i=0;i<warm;i++)render(base+i*8.33);
+  const s=[];for(let i=0;i<iters;i++)s.push(render(base+(warm+i)*8.33));s.sort((x,y)=>x-y);
+  return {rows,cells:cells.length,median:+s[s.length>>1].toFixed(3),p95:+s[Math.floor(s.length*.95)].toFixed(3),
+    pct:+(s[Math.floor(s.length*.95)]/8.33*100).toFixed(1),
+    pass:{ground:+PASS.ground.toFixed(2),walls:+PASS.walls.toFixed(2),nodes:+PASS.nodes.toFixed(2),bees:+PASS.bees.toFixed(2)}}};
+</script>

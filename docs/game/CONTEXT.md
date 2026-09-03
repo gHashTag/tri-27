@@ -96,7 +96,7 @@ worktree when its issue closes - that reaper is still unwritten.
 
 | item | state | needs |
 | --- | --- | --- |
-| **Characters** | SEVENTEEN PRODUCED 2026-09-03: Queen, LARVA, 3 base lines, and all 12 stage renders (SCRIBE/WRIGHT/LAPIDARY x FORAGER/ARTISAN/WARDEN/ARCHON) - engraved via kie.ai, in `sprites/`, drawn by `prototypes/07-comb-sprites.html` with a bottom ladder showing every stage side by side. `stageOf()` gates on the study's rule verbatim (accepted/cleanAccepts/rescues/replayed). Pipeline in `sprites/PIPELINE.md` | portraits, ground tiles, demotion wiring once `queen_dispatch` gets a `failure_kind` |
+| **Characters** | 24 PRODUCED: 17 characters (Queen/LARVA/3 lines/12 stages) plus 4 portraits (hex-badge busts) plus 3 ground tiles (held/neutral/fog engraved plates, triangle-clipped). `prototypes/08-comb-ground-portraits.html` adds a click-to-portrait panel (finds the bee at the picked cell) and visible ground texture. Pipeline + two caught defects (human-face drift on the first Queen portrait; ground texture invisible at first-pass alpha) in `sprites/PIPELINE.md` | demotion wiring once `queen_dispatch` gets a `failure_kind`; a full command-HUD chrome (resource strip, panels, minimap) is next, see below |
 | Slots or aggregates | **DECIDED: slots** (user, 2026-09-03) | bind `workers.slots[]` to cells |
 | Flower ring / field size | undecided | k=2 (19 tiles) is the canonical Flower and costs nothing; 37 and 61 both fit |
 | 108 lit vertices vs 27 | undecided | 108 needs four 27-trit words per tile; only worth it if those 108 quantities mean something |

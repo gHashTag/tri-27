@@ -60,6 +60,25 @@ swallow its cell, and gates the stage with the study's rule verbatim in
 `stageOf()`. ARCHON is unreachable on real data (no `commit_sha` in
 `queen_dispatch`) and appears on the field from the seed only.
 
+## Portraits and ground tiles
+
+Four portraits (Queen + 3 lines), bust-and-hex-badge composition, same house
+style. First attempt drew the Queen as a human face wearing a crown - the
+model reads "bust portrait, front-facing" as human unless told otherwise in
+so many words. Fixed with an explicit anti-drift clause naming every insect
+feature (compound eyes, mandibles, antennae, chitin) and forbidding every
+human one; re-rendered clean on the next attempt. Caught before it reached
+the tree, not after.
+
+Three ground tiles (held/neutral/fog), full-bleed engraved plates, tinted
+silver (not gold) and stretch-clipped into each triangle's bounding box at
+low alpha. First pass used alpha 0.10-0.34 and the texture was technically
+drawing (confirmed via a `drawImage` call-count check: exactly one call per
+cell, correct non-zero bbox) but invisible on screen - fine hairline
+cross-hatch compressed into an ~80px triangle reads as nothing at that
+opacity. Raised to 0.20-0.55; visible without competing with the wireframe
+or the sprites drawn over it.
+
 ## What is NOT done
 
 - No animation frames. One pose per character; the bob is code.
