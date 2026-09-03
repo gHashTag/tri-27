@@ -31,7 +31,15 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
-const ROOT = join(HERE, '..')
+
+// The REPOSITORY root, not the website's. Scanning from apps/website left
+// everything above it - docs/, the root README, the workflow files - outside
+// the rule the operator actually stated, which was about all docs and all code.
+// A language gate with a blind spot the size of docs/ is not a language gate.
+const ROOT = execFileSync('git', ['rev-parse', '--show-toplevel'], {
+  cwd: HERE,
+  encoding: 'utf8',
+}).trim()
 const BASELINE = join(HERE, 'english-only-baseline.json')
 
 const CYRILLIC = /[\u0400-\u04FF\u0500-\u052F]/gu
@@ -39,15 +47,15 @@ const CYRILLIC = /[\u0400-\u04FF\u0500-\u052F]/gu
 // Files whose whole purpose is to hold another language. Nothing here is
 // checked at all -- not "checked leniently", not counted in the baseline.
 const TRANSLATION = [
-  /^messages\//,
-  /^src\/i18n\//,
-  /^qa\/language-exceptions\.json$/,
-  /^src\/data\/blog\//, // post bodies, published in ru and en
-  /^src\/content\//, // long-form page copy
-  /^public\//,
+  /(^|\/)messages\//,
+  /(^|\/)src\/i18n\//,
+  /(^|\/)qa\/language-exceptions\.json$/,
+  /(^|\/)src\/data\/blog\//, // post bodies, published in ru and en
+  /(^|\/)src\/content\//, // long-form page copy
+  /(^|\/)public\//,
   /\.ru\.[a-z]+$/,
-  /^dist\//,
-  /^node_modules\//,
+  /(^|\/)dist\//,
+  /(^|\/)node_modules\//,
 ]
 
 const CODE = /\.(ts|tsx|js|jsx|mjs|cjs|css|scss|yml|yaml|sh)$/
@@ -111,13 +119,13 @@ function countViolations(rel, source) {
 
 function trackedFiles() {
   const staged = process.argv.includes('--staged')
-  // --relative is load-bearing. `git ls-files` in a subdirectory prints paths
-  // relative to that subdirectory; `git diff --cached --name-only` prints them
-  // relative to the repository root. Without it the two modes disagree about
-  // what a path means, every staged path misses the baseline, and the hook
-  // reports a brand-new violation for a file that has been there all along.
+  // Both commands run with cwd at the repository root, so both print
+  // repository-relative paths and the two modes agree about what a path means.
+  // They did not always: `git ls-files` in a subdirectory prints paths relative
+  // to that subdirectory, so every staged path missed the baseline and the hook
+  // reported a brand-new violation for a file that had been there all along.
   const args = staged
-    ? ['diff', '--cached', '--name-only', '--relative', '--diff-filter=ACMR']
+    ? ['diff', '--cached', '--name-only', '--diff-filter=ACMR']
     : ['ls-files']
   return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' })
     .split('\n')

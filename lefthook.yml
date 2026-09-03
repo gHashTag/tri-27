@@ -19,9 +19,8 @@ pre-commit:
     # identifiers are checked, string literals and messages/ are not. See
     # apps/website/scripts/english-only-check.mjs for why the two are separated.
     english-only:
-      root: apps/website/
       glob: '*.{ts,tsx,js,jsx,mjs,cjs,css,scss,md,yml,yaml,sh}'
-      run: node scripts/english-only-check.mjs --staged
+      run: node apps/website/scripts/english-only-check.mjs --staged
 
     # Only the staged files. The tree carries 167 pre-existing eslint errors and
     # blocking every commit on them would teach everyone to pass --no-verify,
@@ -70,6 +69,6 @@ commit-msg:
     english-only-message:
       run: >
         node -e "const t=require('fs').readFileSync(process.argv[1],'utf8');
-        const c=t.replace(/^#.*$/gm,'').match(/[Ѐ-ӿ]/g);
+        const c=t.replace(/^#.*$/gm,'').match(/[\u0400-\u04FF]/g);
         if(c){console.error('Commit messages are English. Found '+c.length+' Cyrillic character(s).');process.exit(1)}"
         "{1}"

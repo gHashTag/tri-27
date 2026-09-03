@@ -51,8 +51,11 @@ jobs:
       # Code and documentation are English; translations are not. Ratcheted:
       # 14,340 Cyrillic characters live in comments and headings today and the
       # count may only go down.
+      # From the repository root, not apps/website: this one gate covers the
+      # whole tree, including docs/ and the root README.
       - name: English-only
-        run: node scripts/english-only-check.mjs
+        working-directory: .
+        run: node apps/website/scripts/english-only-check.mjs
 
       # 179 type errors today, ratcheted per file. Allowed to stay bad, not
       # allowed to get worse.
