@@ -22,7 +22,7 @@ commit behind it.
    comb, not sitting in one.
 9. Then: real ground and characters, agents mining TRI, "maybe Unity?", study
    the best engines for maximum platform reach. Then: "characters are stupid,
-   do it in Unity."
+   do it in Unity." Then: "slots, merge the PR, draw the characters" - done.
 
 ## Decisions taken, each with its ground
 
@@ -96,11 +96,11 @@ worktree when its issue closes - that reaper is still unwritten.
 
 | item | state | needs |
 | --- | --- | --- |
-| **Characters** | the complaint "characters are stupid" is correct: triangles and dots are not characters; the site has ZERO raster assets | sprites must be PRODUCED. House style is 17th-century engraving (canon-image-style); pipeline exists. The sprite-pipeline study died on session limit and must be rerun. This is the one thing that changes the picture; Unity does not |
-| Slots or aggregates | undecided | the user: is a cell a worker slot (28th machine waits) or an aggregate (a sector with N machines inside)? Recommendation: slots - `workers.slots[]` already exists |
+| **Characters** | FIVE PRODUCED 2026-09-03: Queen, SCRIBE, WRIGHT, LAPIDARY, LARVA - engraved via kie.ai, in `sprites/`, drawn by `prototypes/07-comb-sprites.html`. Pipeline in `sprites/PIPELINE.md` | four evolution stages per line (FORAGER/ARTISAN/WARDEN/ARCHON), portraits, ground tiles. Each render ~0.84 kie credits; 5,490 left |
+| Slots or aggregates | **DECIDED: slots** (user, 2026-09-03) | bind `workers.slots[]` to cells |
 | Flower ring / field size | undecided | k=2 (19 tiles) is the canonical Flower and costs nothing; 37 and 61 both fit |
 | 108 lit vertices vs 27 | undecided | 108 needs four 27-trit words per tile; only worth it if those 108 quantities mean something |
-| PR #105 merge + `railway up` | open, mergeable | prod runs the first commit of the branch (CORS yes, conditional chown no) |
+| PR #105 merge + `railway up` | **MERGED** `441b46e5d` 12:53Z (over pre-existing red CI: pg-migrate has no Postgres in CI, server-tools dies on D-Bus, cla needs the owner's signature); redeployed from the merge | - |
 | Worktree reaper | unwritten | prune `.worktrees/queen-N` when issue N closes and the tree is clean |
 | Map bound to live data | not started | `06-comb.html` is seeded; `public-hardware` (one board today) and `public-activity` (120 events/24h) are the sources |
 | Zoom / Protoss interior / bee evolution | designed in `zoom-and-lod.md`, `evolving-bees.md`; not built | |
