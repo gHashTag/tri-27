@@ -45,10 +45,25 @@ projection factor), so a bee is roughly a third of its cell; the Queen at
 the direction of travel by a horizontal flip; the master faces right. Motion
 is a 4% vertical bob, never a scale change, because scale reads as distance.
 
+## Stages
+
+Twelve renders, `prompts/<line>-<stage>.txt`: each line's base description
+held constant, plus the stage sentence taken from `evolving-bees.md` §2.2 -
+two / three / four / five facet cuts, the trapezoid inner cut from ARTISAN on,
+the mantle arc on WARDEN, the doubled core on ARCHON. LARVA is one sprite for
+all lines: nothing about a grub says which line it becomes. Atlas = 1 larva +
+3 lines x 4 stages + 3 line bases (fallback) + the Queen = 17.
+
+The prototype scales stages on the phi ladder the study specifies
+(LARVA phi^-2 ... ARCHON phi^2, ARTISAN = 1), capped so ARCHON does not
+swallow its cell, and gates the stage with the study's rule verbatim in
+`stageOf()`. ARCHON is unreachable on real data (no `commit_sha` in
+`queen_dispatch`) and appears on the field from the seed only.
+
 ## What is NOT done
 
 - No animation frames. One pose per character; the bob is code.
-- No stage variants beyond LARVA. FORAGER / ARTISAN / WARDEN / ARCHON
-  (`evolving-bees.md` §2.2) need four more renders per line.
+- Demotion (§2.4, `counts_against_issue`) is not applied: `queen_dispatch`
+  has no `failure_kind` to apply it from.
 - No portraits for the side panel.
 - No ground tiles; the ground is still the flat hex fill from 06.
