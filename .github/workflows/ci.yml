@@ -41,9 +41,13 @@ jobs:
         with:
           bun-version: '1.3.12'
 
+      # Node 22, not 20. render-check.mjs drives Chrome over the DevTools
+      # protocol with a global `WebSocket`, which Node did not ship until 22 -
+      # so on 20 the gate died with "WebSocket is not defined" before it opened
+      # a single page. It passed locally because nvm here is on 22.
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install
         run: bun install --frozen-lockfile
