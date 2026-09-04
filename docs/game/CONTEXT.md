@@ -24,7 +24,19 @@ commit behind it.
    the best engines for maximum platform reach. Then: "characters are stupid,
    do it in Unity." Then: "slots, merge the PR, draw the characters" - done.
 
-## Open decision (2026-09-04 09:24Z): an engine for a 3D map?
+## DECIDED (2026-09-04 09:52Z, the user, one word: "Babylon"): the engine is Babylon.js
+
+Asked after the measured spike (below), the user chose Babylon. Consequences:
+the field stays generated from the wire (no cloud editor); the default comb
+stays canvas2D until the Babylon comb reaches visual parity AND passes the
+pick, placement and touch contracts on `?engine=babylon` (`check:queen-babylon`),
+then the default flips and three.js is replaced by Babylon in the research
+city and factory (one engine chunk). Open, assumed until he says otherwise:
+sprites on a 3D ground (StarCraft's own way) rather than 3D models; a mesh
+pipeline (fal.ai Tripo/Hunyuan3D) is a later epic. The migration is tracked
+as tasks B-1.. in the loop backlog.
+
+## The question as it was opened (2026-09-04 09:24Z): an engine for a 3D map?
 
 The user woke during loop cycle 010 and asked, with a StarCraft Terran-base
 screenshot, for "a browser engine where everything is thought out and making
