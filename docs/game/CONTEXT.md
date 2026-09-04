@@ -24,6 +24,41 @@ commit behind it.
    the best engines for maximum platform reach. Then: "characters are stupid,
    do it in Unity." Then: "slots, merge the PR, draw the characters" - done.
 
+## DIRECTED (2026-09-04 13:20-13:55Z, the user, four messages): modules in rings, unique from their code
+
+"Our modules are in rings from the centre by the Flower of Life architecture;
+make a more real game world: light, materials, best practices; study the
+engine." "Find a way for every module to be unique and its visual generated
+from the code it is written in, so the images match; how?" "Study mesh
+shaders, maybe that is what suits us." "The bees (agents) ARE the GitHub
+issues; the modules in the rings are the modules for visualisation."
+
+The design, recorded as tasks M-1..M-4 in the loop backlog:
+
+- The unit of place is a code MODULE of the repository, not a board card.
+  Modules lie on hexagonal rings around the Queen's hub, placed by a stable
+  ledger keyed by module path (the same rule as P1-20). Bees are the issues:
+  they walk between the modules their activity events touch (the feed's
+  paths already name them).
+- A module's visual is a pure function of its code: signature = {path,
+  language, files, lines, functions, imports, exports, last touched, open
+  issues}; seed = hash(path); a shape grammar turns the signature into a
+  building (footprint from lines, height from functions, wings from exports,
+  antennae from imports, colour from language, damage from open issues),
+  assembled from Kenney parts or generated geometry; a contract proves the
+  same signature yields the same mesh. This is the "code city" idea
+  (Wettel and Lanza's CodeCity; Software Cities) applied to a live repo.
+- The signature must come from the code: a server endpoint
+  /queen/public-modules (M-1, needs `railway up`); until then the client
+  derives modules and counts from the activity feed's paths.
+- Mesh shaders are not in WebGPU or any browser in 2026; uniqueness goes
+  through thin instances with per-instance custom attributes read by a
+  NodeMaterial/ShaderMaterial (M-4), which the field already uses for
+  placement.
+
+The Kenney Space Kit (CC0) is on the field since #912; the pack was the
+user's "download it yourself, open source".
+
 ## DIRECTED (2026-09-04 11:10Z, the user, with the StarCraft screenshot): "I want a field like THIS"
 
 After the Babylon comb reached parity with the canvas diagram (islands,
