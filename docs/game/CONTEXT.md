@@ -107,6 +107,7 @@ worktree when its issue closes - that reaper is still unwritten.
 | Z.AI keys | 2 live (`dced…w8LF`, `ff6f…Ii78`); 2 exhausted on both hosts, deleted | top up or leave |
 | **Review queue (17)** | not "no review": accept=34 of 49 finished. Three valves: `wait` was terminal (fixed), a `## VERDICT` header torn across transcript rows read as no verdict (fixed, `fix/queen-review-torn-verdict`), and `sendBack` never re-dispatches (#1329, open). 6 escalations genuinely need a person or a rewritten issue | merge + deploy the fix; decide #1329 |
 | Map bound to live data | not started | `06-comb.html` is seeded; `public-hardware` (one board today) and `public-activity` (120 events/24h) are the sources |
+| **Bees on cards** (trinity #896 = `2b3fd61c2`, 2026-09-04 01:18Z, published) | The comb's bees mean something now. Pairing is positional and the code says so: the k-th busy worker slot flies to the k-th running card and hovers there; a busy slot with no running card hovers at the Queen's cell; an idle slot is a larva on the ring around her. No public endpoint links a slot to an issue, so this is the only consistent reading of both. Bee objects are keyed by the slot SET, so the 5 s poll no longer resets flight (it did before: every poll rebuilt the array). New activity events glint a ring on the cell of their issue in the kind's colour; a card that changes column flashes its cell. Proven in headless Chrome with two endpoints mocked (3 running, 2 busy): a click sweep read SLOT 01 BUSY on #1385 and SLOT 02 BUSY on #1383, both running, the third running card bare | a real slot-to-issue field in `/queen/public-research` would make the pairing exact instead of positional |
 | Zoom / Protoss interior / bee evolution | designed in `zoom-and-lod.md`, `evolving-bees.md`; the 12 stage sprites exist but the React comb draws only base line sprites for busy slots - stage needs a per-slot ledger the API does not emit yet | |
 | **ONE SCREEN** (the user, 2026-09-04, in Russian: why is the screen so long - put everything into one HUD on one screen) | BUILT on trinity `feat/queen-command-screen`, the 4X command HUD in the user's two reference images with the live palette: top resource bar (BEES, ACCEPTED, VERDICTS, RESEARCH, FOUNDRY, NEXT ROUND, ALERTS, status pill + MENU), left command panel (COMB / KANBAN / MISSION MAP / FACTORY / TECHNOLOGY TREE, digit keys 1-5, collapsible), centre viewport (`SECTOR: repo`, FIT / − / + / FULLSCREEN) with the CONTEXT DETAILS overlay (BEE QUEUE = running cards + their latest event; SELECTED = the Queen's portrait and stats or the picked cell), right column (INTEL FEED = public-activity, OVERVIEW = flat minimap of the same cells, SECTORS = the six columns as territories), bottom (ACTIVE SECTOR, QUICK COMMANDS: copy A2A / open repo / open issue / fit / fullscreen / EN-RU, and the gold NEXT QUEEN ROUND clock with the decision popover). No page scroll: the height chain of `tabs-at-height.md` §3.3 is applied under `body.queen-shell` / `.queen27-page.is-shell`, and `qa/queen-viewport-contract.mjs` (§5 adapted) runs 5 sizes × 5 views in headless Chrome: 25/25. DATA-HONESTY RULE: every number on screen is an endpoint field or a COPY key, absent data reads as a dash, the gold block is a clock and is never labelled END TURN - no public write endpoint exists. Built by three parallel panel builders + one integrator + four verifiers (two adversarial reviews found 25 items, 5 blockers all "0 rendered while the endpoint is silent") + a fix loop, then five fixes by hand from the screenshots: fit-to-box camera with a bottom inset for the context panel, context panel open only on the comb (and never by default on a phone), six sector rows fit at 900px, active-sector stats as a 2x2 grid behind the mark instead of a ground tile, and the minimap pick reaching the context panel. **MERGED as trinity #895 = `4f06bddcf`** (2026-09-03 19:16Z) and **PUBLISHED**: apex `6b1b82041` (19:20Z), entry `index-uZ48wLf1.js`, chunk `Queen-C3eVNqWh.js` (107,527 B) carries `queen-shell`, `queen27-hud-top`, `queen27-hud-command`, `queen27-context`, `queen27-intel`, `queen27-minimap`, `fitInset` - grepped from the served file, not from dist | open items below: bee evolution stages, worktree reaper, `failure_kind` |
 
@@ -118,7 +119,7 @@ tri-27/docs/game/prototypes 01-06 + README (geometry provenance, the defects fou
 BrowserOS  feat/queen-supervisor     a0df36cd5 routes (superseded by origin's merge of #99)
 BrowserOS  fix/queen-public-cors-and-key  f03afa01a + 851d77008  -> PR #105
 trinity    main 83b38287a            #894 comb merged and published (apex 1a39ad464)
-trinity    feat/queen-command-screen  the one-screen HUD (clean clone at /tmp/trinity-comb)
+trinity    main 4f06bddcf / 2b3fd61c2  #895 the one-screen HUD, #896 bees on cards (clean clone at /tmp/trinity-comb)
 ghashtag.github.io  publish-website.yml   THE publisher: builds trinity@main every 15 min IF the cron fires
                                           (it stalled 2.5 h on 2026-09-03); `gh workflow run publish-website.yml
                                           --repo gHashTag/ghashtag.github.io` publishes in ~3 min. trinity's own
@@ -152,6 +153,16 @@ Railway    trios-agent-server        QUEEN_FPGA_SIGNING_PRIVATE_KEY set; deploy 
   of the canvas, none below, on a resize without reload and on cold reloads).
   A harness screenshot is not a browser; when the two disagree, measure the
   browser before touching the code.
+- **A hidden browser pane runs no animation frames.** The Claude Browser
+  pane reported `document.hidden = true`; the comb's loop was frozen there,
+  so a pixel scan found every bee at home and nearly proved a false defect.
+  Animation tests go through the headless harness (visible page, frames
+  run) or a fronted tab, never a hidden pane.
+- **A synthetic click must yield before the DOM shows the pick.** React
+  flushes a native-listener update after the task, so a sweep that
+  dispatches a click and reads the panel synchronously sees the old text
+  160 times. `await setTimeout(8)` between clicks turned 1 distinct cell
+  into 23 and found both bees.
 - The 55.9 fps figure was one implementation, not canvas2D.
 - The palette was read from the wrong file twice (checkout, not live site).
 - "Gold has 27 uses" was four files; whole-tree count is 277.
