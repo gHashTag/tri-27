@@ -58,8 +58,16 @@ and the answer given in chat was:
   city) but is a renderer, not an engine; Babylon would REPLACE it, not add
   to it. **Phaser** is 2D only.
 
-Proposed next step, consistent with the rule that engine decisions are
-measured: one loop cycle builds a Babylon spike of the same 189-island field
+MEASURED (loop cycle 011, draft PR trinity #907 = `a5b59b581`, not merged):
+the same 189-island field in Babylon.js 9.25 behind `?engine=babylon`, on an
+M1 Pro in headless Chrome with ANGLE/Metal at 60 Hz vsync, 4 s of rAF: both
+engines at vsync at 1440x900 and 390x844 in the second run (p50 16.7, p99
+<= 33.4, 0-5 missed of 240; canvas2D's first cold run at 1440x900 stalled to
+half rate once). Chunks brotli: babylon 218,532 B, three.js shipped today
+204,197 B, so Babylon costs +14 KB if it replaces three.js and +218 KB if
+added. The engine buys systems, not frames. `tri game-spike` reruns it.
+
+The step that was proposed before measuring, kept for the record: one loop cycle builds a Babylon spike of the same 189-island field
 (orthographic isometric camera, the mark as a mesh with the engraved texture,
 structures and bees as billboards, picking) and measures brotli delta, frame
 p95/p99 at the five gate sizes under swiftshader, and first paint; the user
