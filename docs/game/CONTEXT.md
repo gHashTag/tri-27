@@ -24,6 +24,18 @@ commit behind it.
    the best engines for maximum platform reach. Then: "characters are stupid,
    do it in Unity." Then: "slots, merge the PR, draw the characters" - done.
 
+## DIRECTED (2026-09-04 11:10Z, the user, with the StarCraft screenshot): "I want a field like THIS"
+
+After the Babylon comb reached parity with the canvas diagram (islands,
+line-work, glints) the user said "where is the game in this view?" and
+"hear me, I want a field like THIS". The field is now a GAME FIELD: one
+continuous steel-tile platform (the mark engraved faintly per tile keeps
+"the tile is our drawing"), a sun with shadows, low-poly buildings with
+volume per card column (procedural until an asset pack is named), the
+Queen's hub, bees as ground units with selection rings, a fixed RTS camera.
+The floating-island diagram is gone from the Babylon comb; `?engine=canvas`
+still shows it for one release. Do not port line-work back.
+
 ## DECIDED (2026-09-04 09:52Z, the user, one word: "Babylon"): the engine is Babylon.js
 
 Asked after the measured spike (below), the user chose Babylon. Consequences:
