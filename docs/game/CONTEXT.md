@@ -24,6 +24,51 @@ commit behind it.
    the best engines for maximum platform reach. Then: "characters are stupid,
    do it in Unity." Then: "slots, merge the PR, draw the characters" - done.
 
+## Open decision (2026-09-04 09:24Z): an engine for a 3D map?
+
+The user woke during loop cycle 010 and asked, with a StarCraft Terran-base
+screenshot, for "a browser engine where everything is thought out and making
+the game is simple, with a 3D map". He also pasted a third-party research
+answer recommending PlayCanvas. The standing decision above (no engine,
+canvas2D, measured) is NOT overturned by this; it is re-opened by the user,
+and the answer given in chat was:
+
+- The reference itself is 2D isometric sprites on a tiled ground; the comb
+  already does that projection in canvas2D. What an engine buys is real 3D
+  models with light and shadow, unit pathfinding, camera and picking systems,
+  a GUI layer.
+- Best fit for THIS repo (React + Vite + TypeScript, GitHub Pages with no
+  custom headers, headless-Chrome contracts, a field generated from the wire,
+  not hand-placed): **Babylon.js 9** - Apache-2, npm/ESM, WebGL2 + WebGPU,
+  glTF/PBR/shadows, sprite billboards for the 24 PNG sprites, Havok (wasm)
+  physics, Recast navmesh + crowd agents (RTS unit movement out of the box),
+  inspector, Playground. Our own benchmark: 120 fps, 0.7-0.9 ms CPU, 0-1 long
+  frames, 263,385 B brotli with selective imports.
+- **PlayCanvas 2.x** only if the user wants a visual level editor in the
+  browser: the engine is MIT and npm-installable, but the editor is a cloud
+  service (free = public projects only; Personal $15/mo for private;
+  Organization $50/seat), and it has no built-in pathfinding. Our benchmark
+  measured a frame stutter in its retained mode (p99 17-22 ms, 3-10 long
+  frames per 3 s) that no other candidate showed.
+- **Godot 4.7 web**: WebGL2 only, 33 MB wasm stock (5.4 MB with custom
+  templates), single-threaded on GitHub Pages (threads need COOP/COEP headers
+  Pages cannot send); an opaque canvas that cannot host the HUD's React
+  contracts. **Unity 6 web**: 2.0 MB brotli empty, proprietary. Both out.
+- **three.js** is already in the bundle (919 KB raw chunk for the research
+  city) but is a renderer, not an engine; Babylon would REPLACE it, not add
+  to it. **Phaser** is 2D only.
+
+Proposed next step, consistent with the rule that engine decisions are
+measured: one loop cycle builds a Babylon spike of the same 189-island field
+(orthographic isometric camera, the mark as a mesh with the engraved texture,
+structures and bees as billboards, picking) and measures brotli delta, frame
+p95/p99 at the five gate sizes under swiftshader, and first paint; the user
+decides on the numbers. Two questions only he can answer: (1) 3D models
+(needs a model pipeline: Blender, Meshy or Tripo; kie.ai makes images, not
+meshes) or sprites on a 3D ground as StarCraft itself did; (2) does he want
+to place things by hand in an editor (then PlayCanvas) or keep the field
+generated from the wire (then Babylon).
+
 ## Decisions taken, each with its ground
 
 **No engine. Hand-written canvas2D.** Measured three times, never refuted:
