@@ -63,6 +63,23 @@ gold `#FFD45A`, cold `#FF6B6B`, ground `#020806`; tokens `--q-gold #ffd700`,
 map, a city, a foundry and an orbit are ALREADY LIVE. Anything built from the
 prototypes must extend that vocabulary, not add a second one.
 
+**The city on the comb (the user, 2026-09-04, three messages in a row).** "A city
+whose tile IS our drawing" - not a city instead of the comb. Then: "remove the
+up-pointing triangles; what is left is islands floating in weightlessness, where
+27 cells are the field of one unit". Then, with a StarCraft platform screenshot:
+"islands with structure, like soil through which the drawing is visible - I want
+this". Built as: `buildCells` keeps only the down cells (the mark alone, touching
+neighbours at vertices); every island floats on its own phase (`zc()`), with a
+dark underside and side faces nine units below, the engraved ground plate on top
+at alpha .85/.7/.35 (held/neutral/fog), a lit rim, and the mark's 135 edges drawn
+OVER the soil so the drawing shows through; one structure sprite per card by
+column (`structure-{backlog,running,review,done,blocked,dropped}`, tinted dim
+silver / cyan / silver / gold / cold / dark), one crystal per verified hardware
+device by family (`crystal-{cpu,fpga,gpu}`, gold / cyan / green), painter-sorted
+by depth, under the bees. Nine renders via kie.ai in the house engraving idiom,
+all nine accepted on the first submission (prompts in `sprites/prompts/`,
+masters in `sprites/`). The context panel shows a picked card's structure.
+
 **Mining economy: in-game resource, wall to TRI stays up.** `TrinityToken.sol`
 exists (ERC20 + vesting, Sepolia deployment). `territory-economy.md` §4.5 ends
 in a prohibition: do not attach a transferable token to a proof unit, because
