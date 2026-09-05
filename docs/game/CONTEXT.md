@@ -24,7 +24,38 @@ commit behind it.
    the best engines for maximum platform reach. Then: "characters are stupid,
    do it in Unity." Then: "slots, merge the PR, draw the characters" - done.
 
-## DIRECTED (2026-09-04 13:20-13:55Z, the user, four messages): modules in rings, unique from their code
+## DIRECTED (2026-09-05 08:05-08:40Z, the user, two messages + plan answers): the honeycomb foundation and the castle of rings
+
+"Не город, а соты с мёдом; у каждой задаче своя сота." Then: "Kenney
+Hexagon Kit — это фундамент; жёлтый гекс появляется после решения GitHub
+issue; так пчела поднимается на первую ступень иерархии; у каждой пчелы свои
+скилы и опыт; застройка от центра по кругу — первый слой; второй слой —
+кольца (модуль RING решает свою уникальную задачу и не дублирует другие;
+аудит колец; в каждом кольце башня замка; башня строится эпиком; эпики —
+башни замка); включая и выключая слои 3D-карты, видим, как пчёлы создают
+фундамент для города над; спроецировать механику на все функции GitHub."
+
+Decided in plan mode (his answers): resolved = closed on GitHub; epic = the
+`epic` label, until then a title starting with EPIC; rings = the directories
+trios/rings/* (21); honey stays (a hex is a cell, honey is the yellow); epic
+→ ring by labels `ring:<NAME>` (he creates them), until then the ring named
+in the title, else unassigned at the keep; the rings audit (D1–D11, evidence
+in the tree) becomes the first epics with children the Queen can dispatch.
+
+The plan (approved 2026-09-05 ~08:45Z, `~/skills/queen-game-loop/_state/plan-honeycomb.md`):
+a pointy-top hex spiral from the hub (ring n holds 6n cells; 1009 closed
+issues = 18 rings, 1027 cells), one honey hex per closed issue in closed_at
+order from a dated snapshot `public/queen/foundation.json` the loop makes
+with gh (the wire carries no closed_at/labels/epics; the server reads only
+number/title/body); modules keep the ledger on the same grid from cell 1
+(CODE layer); the castle on spiral ring 7 (21 plinths + 21 walls, towers by
+epic stage: plinth / walls / tower / wizard tower, height by closed
+children); three toggleable layers FOUNDATION / CASTLE / CODE (bees always);
+picks by (kind, number); bees' ranks honest under the server's anonymity.
+Slices A, B, C1, C2, D, E, F, K0–K5, L1, L2, S1 in the loop backlog (H-*/K-*).
+The city of Space Kit buildings is the CODE layer, not the field.
+
+DIRECTED (2026-09-04 13:20-13:55Z, the user, four messages): modules in rings, unique from their code
 
 "Our modules are in rings from the centre by the Flower of Life architecture;
 make a more real game world: light, materials, best practices; study the
