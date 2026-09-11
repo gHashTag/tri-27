@@ -1,5 +1,5 @@
 {
-  "note": "Recorded from the live supervisor. Refresh with `npm run check:queen -- --record`. Values are illustrative; only the SHAPE is asserted.",
+  "note": "Recording for the tri-27 snapshot only. Refresh with `npm run check:queen-snapshot -- --record`. Values are illustrative; only the SHAPE is asserted.",
   "recordedAt": "2026-09-03T07:50:14.412Z",
   "origin": "https://trios-agent-server-production.up.railway.app",
   "responses": {

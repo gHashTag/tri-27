@@ -10,10 +10,9 @@ name: CI
 #      site has lived outside the monorepo, so it was reported as a passing
 #      check while checking nothing. It is not in the required set below.
 #
-#   2. Nothing here talks to the network on the critical path. The Queen
-#      contract is asserted against a committed recording; a separate scheduled
-#      job compares that recording to the live service, so a Railway outage
-#      opens an issue instead of turning every pull request red.
+#   2. These gates validate this extracted snapshot. Production Queen acceptance
+#      belongs to gHashTag/trinity (trinity#974). The old page/recording comparison
+#      is an optional manual snapshot diagnostic, not a production gate.
 
 on:
   push:
@@ -65,12 +64,6 @@ jobs:
       # allowed to get worse.
       - name: Typecheck ratchet
         run: node scripts/typecheck-ratchet.mjs
-
-      # Every field the Queen page reads is emitted by the recording of the
-      # live supervisor. Catches the class of defect that put five permanently
-      # unobtainable metrics on this page for months.
-      - name: Queen contract
-        run: node scripts/queen-contract-check.mjs
 
       - name: ARIA references
         run: node scripts/aria-refs-check.mjs

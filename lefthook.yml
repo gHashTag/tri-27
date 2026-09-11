@@ -48,12 +48,8 @@ pre-push:
       root: apps/website/
       run: npm run typecheck:ratchet
 
-    # Every field the Queen page reads must be one the supervisor emits. Runs
-    # against a committed recording, so a Railway outage cannot fail a push.
-    queen-contract:
-      root: apps/website/
-      run: node scripts/queen-contract-check.mjs
-
+    # Queen's extracted page/recording comparison is opt-in via
+    # npm run check:queen-snapshot; production acceptance stays in gHashTag/trinity#974.
     # Green means "modules resolved", which is not the same as "the page
     # renders". This one opens it.
     build:

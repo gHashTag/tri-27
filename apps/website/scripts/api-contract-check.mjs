@@ -39,7 +39,8 @@ if (!existsSync(SRC)) {
   console.log('  This check compares the UI against the Zig services in');
   console.log('  gHashTag/trinity, which is a different repository now.');
   console.log('  Set TRINITY_SRC=<path to trinity/src> to actually run it.');
-  console.log('  The Queen contract is covered by check:queen instead.');
+  console.log('  check:queen-snapshot only compares this local Queen page with its recording.');
+  console.log('  Production Queen acceptance belongs to gHashTag/trinity.');
   process.exit(0);
 }
 function zigFiles(dir, out = []) {
@@ -120,4 +121,3 @@ if (existsSync(svc)) {
   }
   console.log('  all service fallbacks tagged as sample data');
 }
-
