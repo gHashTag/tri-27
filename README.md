@@ -1,7 +1,9 @@
 # TRI-27
 
-The public face of Trinity: the site at **[t27.ai](https://t27.ai)**, and the
-game that is being built on top of it.
+An extracted website snapshot and design lab for Trinity's Mission Control game.
+The live **[t27.ai](https://t27.ai)** source remains in
+**[gHashTag/trinity/apps/website](https://github.com/gHashTag/trinity/tree/main/apps/website)**.
+No publisher cutover to this repository has taken place.
 
 `φ² + 1/φ² = 3 = TRINITY`
 
@@ -9,61 +11,61 @@ game that is being built on top of it.
 
 ## Why this repository exists
 
-Until 2026-09-03 the site lived at `gHashTag/trinity/apps/website` — one
+On 2026-09-03 a copy was extracted from `gHashTag/trinity/apps/website` — one
 directory inside a 5,956-commit, 1.5 GB Zig/Rust monorepo whose other 12,000
 files are a compiler, an FPGA flow and a research corpus. Nothing about the
 website needed any of that, and nobody could clone the site without cloning all
 of it.
 
-This repository is that directory, extracted with `git filter-repo` and **its
-history intact**: 247 commits, 228 files, a 3.4 MB `.git`. Every commit that
-ever touched the site is still here, with its author, date and message. The
-first is `f3fc188 feat(tri): Terminal colors + ELO arena + Zenodo hub (#435)`.
+The extraction used `git filter-repo` with **its history intact**. The extraction
+record counted 247 commits, 228 files and a 3.4 MB `.git`; these are historical
+figures, not current inventory. The live site continued developing in Trinity
+after the extraction. Changes here do not reach t27.ai automatically.
 
 ## What is here
 
 | Path | What it is |
 |---|---|
-| `apps/website/` | The Vite + React + Three.js site published to t27.ai |
-| `apps/website/src/pages/Queen.tsx` | The Queen's public page — see below |
+| `apps/website/` | Extracted Vite + React + Three.js website snapshot |
+| `apps/website/src/pages/Queen.tsx` | Queen page from the extraction; not the current production game |
 | `docs/game/` | Design and measurements for the Mission Control game |
 
-The path `apps/website` is deliberately unchanged. The publisher in
-`gHashTag/ghashtag.github.io` builds from `.src/apps/website`, so keeping the
-name makes the cutover a one-line change to which repository it checks out,
-rather than a rewrite of the workflow.
+The path `apps/website` is deliberately unchanged. As verified on 2026-09-12,
+the [apex publisher](https://github.com/gHashTag/ghashtag.github.io/blob/d380f4e9f16eab9733595401682875423faba040/.github/workflows/publish-website.yml)
+checks out `gHashTag/trinity@main` into `.src` and builds `.src/apps/website`.
+It does not check out `tri-27`. Source ownership and the divergence are tracked
+in [trinity#974](https://github.com/gHashTag/trinity/issues/974).
+
+A future extraction requires an explicit migration: reconcile source and assets,
+move the production acceptance checks, switch the publisher, and verify the served
+revision. Preserving a directory name does not perform that migration. Until then,
+production fixes and acceptance checks belong in Trinity.
 
 ## What is NOT here, and why
 
-**The Queen's brain.** The supervisor that picks issues, cuts worktrees,
-dispatches bees and judges their work is `gHashTag/trios`, deployed on Railway.
-It is a Bun/TypeScript service with a Postgres schema and a Swift policy core;
-it does not belong in a static site and moving it would take the deployment
-down. This repository holds the face. The brain is linked, not copied.
+**The Queen's brain.** This snapshot does not include the deployed supervisor.
+The page's configured API and its committed recording describe the backend it
+was built against; they do not establish current deployment health or production
+contract compatibility. Follow the current Trinity sources when changing the
+production page or its producer.
 
 ## The link
 
 ```
-   gHashTag/trinity            gHashTag/tri-27           gHashTag/trios
-   research monorepo    ──▶    this repo: the face  ◀──  the Queen's brain
-   (source of record for                │                (Railway + Postgres)
-    the brain atlas, the                │                      │
-    .t27 language, the FPGA)            │                      │
-                                        ▼                      │
-                          gHashTag/ghashtag.github.io          │
-                          publishes the built site  ────────▶  t27.ai
-                          every 15 minutes                     │
-                                                               │
-                     the page reads /queen/status ◀────────────┘
-                     and /queen/public-board
+gHashTag/trinity/apps/website -- built by --> gHashTag/ghashtag.github.io
+            |                                              |
+            | historical extraction                       v
+            +----------------------> gHashTag/tri-27      t27.ai
+                                      snapshot + lab
+                                      no publishing link
 ```
 
-### The gap this repository was created to close
+### Historical connection work (2026-09-03)
 
-`t27.ai/#/queen` has been showing **"brain not connected"** in production. The
+At extraction time, `t27.ai/#/queen` showed **"brain not connected"**. The
 page was not broken — it was pointed at a Zig service on `localhost:8080` that
 is not the supervisor that actually runs. Meanwhile the real Queen answered
-every request made from a terminal:
+requests made from a terminal (historical recording, not a current health check):
 
 ```
 $ curl -s https://trios-agent-server-production.up.railway.app/queen/status
@@ -113,6 +115,19 @@ cd apps/website
 bun install
 bun run dev
 ```
+
+### Optional snapshot contract check
+
+```bash
+npm run check:queen-snapshot
+```
+
+This compares this checkout's `Queen.tsx` with its committed recording only. It
+does not validate the current t27.ai game or the deployed supervisor. It is an
+opt-in diagnostic, also available through the manual **Queen snapshot contract**
+workflow; it is not a required CI gate or a default hook. `--live` compares this
+same snapshot with the configured API, and `--record` refreshes its recording.
+Neither turns the snapshot into the production acceptance suite.
 
 Point the page at a Queen with `VITE_QUEEN_API`. With nothing set, the page says
 so rather than rendering empty panels — a dashboard that looks alive and reports

@@ -1,4 +1,5 @@
-// Every field the Queen page reads must be a field the supervisor emits.
+// Optional diagnostic for tri-27's extracted Queen page and its recording.
+// Production Queen acceptance belongs to gHashTag/trinity (trinity#974).
 //
 // This exists because of the defect it replaces, not as a precaution. Until
 // 2026-09-03 this page rendered five metrics -- trinity_signature,
@@ -12,11 +13,12 @@
 // than against a hand-written mock. A mock is written by the same person who
 // wrote the bug, and agrees with it.
 //
-// Refresh the recording:  node scripts/queen-contract-check.mjs --record
-// Check against live too: node scripts/queen-contract-check.mjs --live
+// Compare the snapshot: npm run check:queen-snapshot
+// Refresh its recording: npm run check:queen-snapshot -- --record
+// Compare it with the configured API: npm run check:queen-snapshot -- --live
 //
-// --record talks to the network. The default does not, so CI stays hermetic
-// and a Railway outage cannot turn this repository red.
+// --record and --live talk to the network; the default is offline. None of
+// these modes checks the current production page, only this checkout's page.
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
@@ -26,6 +28,8 @@ const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(HERE, '..')
 const FIXTURE = join(HERE, 'queen-contract.json')
 const PAGE = join(ROOT, 'src/pages/Queen.tsx')
+
+console.log('  SNAPSHOT ONLY: tri-27 Queen.tsx; production source is gHashTag/trinity/apps/website')
 
 const DEFAULT_API = 'https://trios-agent-server-production.up.railway.app'
 const API = (process.env.QUEEN_API ?? DEFAULT_API).replace(/\/+$/, '')
@@ -97,7 +101,7 @@ async function record() {
     FIXTURE,
     `${JSON.stringify(
       {
-        note: 'Recorded from the live supervisor. Refresh with `npm run check:queen -- --record`. Values are illustrative; only the SHAPE is asserted.',
+        note: 'Recording for the tri-27 snapshot only. Refresh with `npm run check:queen-snapshot -- --record`. Values are illustrative; only the SHAPE is asserted.',
         recordedAt: new Date().toISOString(),
         origin: API,
         responses: recorded,
@@ -112,7 +116,7 @@ async function record() {
 async function check() {
   if (!existsSync(FIXTURE)) {
     console.error('  no recording at scripts/queen-contract.json')
-    console.error('  create it with: npm run check:queen -- --record')
+    console.error('  create it with: npm run check:queen-snapshot -- --record')
     process.exit(1)
   }
   const fixture = JSON.parse(readFileSync(FIXTURE, 'utf8'))

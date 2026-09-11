@@ -1,8 +1,12 @@
-# t27.ai — исходники сайта
+# TRI-27 website snapshot
 
-Здесь лежит SPA, из которой собирается живой сайт https://t27.ai. До 14.08.2026
-в этом файле стоял шаблон `React + TypeScript + Vite` — документ, который не
-описывал ни одного правила этого проекта. Он заменён.
+This directory is an extracted snapshot and design lab. The live t27.ai source
+remains in [gHashTag/trinity/apps/website](https://github.com/gHashTag/trinity/tree/main/apps/website).
+The publisher has not switched to tri-27; see [trinity#974](https://github.com/gHashTag/trinity/issues/974)
+and the [repository ownership notes](../../README.md). The inherited notes below
+describe the snapshot's historical content and workflow, not current production
+status. Run `npm run check:queen-snapshot` only to compare this local Queen page
+with its committed recording; it is not a production acceptance check.
 
 ## Что этот сайт утверждает и в каком порядке
 
@@ -104,21 +108,15 @@ URL строго вида `http://localhost:4173/index.html?lang=ru#/<route>` �
 - Русская локаль ломается не в словаре, а в захардкоженных JSX-абзацах —
   искать по строкам английского текста прямо в `.tsx`.
 
-## Как правка доходит до читателя
+## Production publishing ownership
 
-Живой сайт обслуживает **другой** репозиторий — `gHashTag/ghashtag.github.io`
-(apex). Его workflow `publish-website.yml` собирает эту SPA, копирует ассеты,
-пересобирает статический блог и лендинги, прогоняет `verify-site.sh` и делает
-коммит. Расписание заявлено раз в 15 минут, наблюдаемый интервал — около часа,
-поэтому читателю честно обещать «в течение часа», а не «через 15 минут», и
-проверять `curl`-ом.
+As verified on 2026-09-12, `gHashTag/ghashtag.github.io` publishes the apex from
+`gHashTag/trinity@main`, building that repository's `apps/website` directory.
+See the [pinned publisher workflow](https://github.com/gHashTag/ghashtag.github.io/blob/d380f4e9f16eab9733595401682875423faba040/.github/workflows/publish-website.yml).
+A merge in tri-27 does not publish to t27.ai. The publisher schedule is not a
+delivery guarantee; the [delivery record](https://t27.ai/status/delivery.json)
+identifies the served source revision and publication time.
 
-С 14.08.2026 публикатор пишет измеренную задержку в `status/delivery.json`
-(https://t27.ai/status/delivery.json): коммит-источник, время публикации и
-разница в минутах. Первые записи — 11–21 минута, но это был ручной запуск;
-цифру для обещаний брать из этого файла, когда в нём накопится ряд
-автоматических запусков, а не из расписания.
-
-Мерж в `main` этого репозитория сам по себе публикацией не является. Маршрут
-SPA `#/blog/<slug>` отдаёт 200 всегда и доказательством тоже не является —
-проверять статический путь `blog/<slug>/index.html`.
+A future cutover needs an explicit source reconciliation, acceptance-suite
+migration, publisher change, and served-revision verification. No cutover is
+performed by this documentation change.
