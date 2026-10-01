@@ -637,6 +637,39 @@ This is the same sentence §5 already wrote about self-attestation, arrived at
 from the attack side rather than the architecture side. `.tri-cluster.json` in
 the `trinity` checkout is what ignoring it looks like — see §6.5.
 
+### 4.6 What the prohibition does not cover: an accepted spec (PROPOSED, 2026-10-01)
+
+> **Status: PROPOSED, awaiting the owner.** Until the owner accepts it, §4.5
+> stands unqualified and nothing here changes the game.
+
+§4.5 forbids a transferable token on a **proof unit**, and the reason is A4: a
+proof unit pays for *compute claimed*, and claimed compute can be rented. The
+mint design in `trinity-fpga` (`specs/trinet/mint_on_acceptance.t27`) pays for
+something else: an **accepted `.t27` spec**, which is an artefact judged on its
+content. Who ran which machine to write it does not matter, so A4 is not an
+attack on it. Renting a GPU to write a good spec is just writing a good spec.
+
+The proposal therefore draws the wall around the unit, not around the token:
+
+| | proof unit (§4.1) | accepted spec |
+|---|---|---|
+| pays for | compute claimed by a holding | an artefact a reviewer accepted |
+| A4 (outsourcing) | a mint, so the unit is **never transferable** | irrelevant: the content is what is paid |
+| transferable TRI | **no**, unchanged | **PROPOSED: yes**, mined per accepted spec, 100% mined, cap 3^21 |
+
+The wall still has to hold against the attacks that do apply to authorship.
+They are named here so the owner decides with them in view:
+
+| # | attack | today | what the proposal requires before a mint |
+|---|---|---|---|
+| S1 | **Revocable verdict.** An accept needs criteria, a commit and a reviewer, but no merge and no CI, and CI can take an accept back later. | an accept can be revoked after it is counted | mint only for accepts whose commit is **merged** to the default branch and not revoked; until then earnings are recorded, not mintable |
+| S2 | **Spec spam.** Many trivial `.t27` files, each accepted. | the leaderboard counts a turn as a "spec" when its declared paths name a `.t27` file, not by what it actually changed | count the actual diff at the judged commit, not the declared boundary; a fixed per-epoch emission so volume does not inflate supply |
+| S3 | **Sybil authors.** One person, many lanes. | lanes map to owners through `TRIOS_KEY_OWNERS`, set by the owner | unchanged: a lane earns only for a named owner, and the owner assigns lanes |
+| S4 | **Reviewer collusion.** A reviewer accepts anything. | the reviewer is the Queen plus CI | out of scope for V1; the attestor quorum (M-of-N) signs only recorded, merged, unrevoked earnings |
+
+Proof units keep the §4.5 prohibition verbatim. The territory map is coloured
+by proof units only, never by TRI.
+
 ---
 
 ## 5. THE LOOP — one full cycle, with today's numbers
