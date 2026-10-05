@@ -15,6 +15,12 @@
 pre-commit:
   parallel: true
   commands:
+    # Secret gate: gitleaks over the staged changes, rules in .gitleaks.toml.
+    # A missing gitleaks fails the hook on purpose (brew install gitleaks): the
+    # gate must not silently turn itself off. CI twin: secret-scan.yml.
+    secret-gate:
+      run: gitleaks git --staged --no-banner --redact --config .gitleaks.toml .
+
     # Code and documentation are English; translations are not. Comments and
     # identifiers are checked, string literals and messages/ are not. See
     # apps/website/scripts/english-only-check.mjs for why the two are separated.
@@ -42,6 +48,10 @@ pre-commit:
 pre-push:
   parallel: false
   commands:
+    # Secret gate: every commit not yet on any remote, before anything slow.
+    secret-gate:
+      run: gitleaks git --no-banner --redact --config .gitleaks.toml --log-opts="HEAD --not --remotes" .
+
     # The typecheck may stay bad; it may not get worse. 179 errors today,
     # ratcheted per file.
     typecheck:
